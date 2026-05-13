@@ -8,6 +8,24 @@
 <meta name="apple-mobile-web-app-title" content="TransfertPro">
 <meta name="theme-color" content="#0a0a0f">
 <title>TransfertPro</title>
+<script>
+// Manifest PWA inline
+const manifest={
+  name:'TransfertPro',short_name:'TransfertPro',
+  description:'Gestion de transfert d\'argent Mali-Maroc',
+  start_url:'/',display:'standalone',
+  background_color:'#0a0a0f',theme_color:'#0a0a0f',
+  orientation:'portrait',
+  icons:[
+    {src:`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='115' fill='%230a0a0f'/><text x='256' y='340' font-size='280' text-anchor='middle' fill='%234f8aff'>💸</text></svg>`,sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}
+  ]
+};
+const blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
+const murl=URL.createObjectURL(blob);
+const ml=document.createElement('link');
+ml.rel='manifest';ml.href=murl;
+document.currentScript.insertAdjacentElement('afterend',ml);
+</script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -360,14 +378,85 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
         <button id="btn-sel" onclick="toggleSel()"
           style="font-size:12px;padding:5px 12px;border-radius:20px;border:0.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">Sélectionner</button>
       </div>
-      <!-- Filtres -->
+
+      <!-- Filtres rapides -->
       <div class="filter-row">
         <button class="filter-btn on" onclick="setFilter('tous',this)">Tous</button>
         <button class="filter-btn" onclick="setFilter('envoi',this)">↑ Envois</button>
         <button class="filter-btn" onclick="setFilter('recep',this)">↓ Réceptions</button>
-        <button class="filter-btn" onclick="setFilter('semaine',this)">Cette semaine</button>
+        <button class="filter-btn" onclick="setFilter('assoc',this)">Via associé</button>
+        <button class="filter-btn" onclick="setFilter('semaine',this)">Semaine</button>
         <button class="filter-btn" onclick="setFilter('mois',this)">Ce mois</button>
       </div>
+
+      <!-- Filtres avancés (toggle) -->
+      <div style="margin-bottom:10px">
+        <button onclick="toggleFiltreAvance()" id="btn-filtre-avance"
+          style="font-size:12px;padding:5px 14px;border-radius:20px;border:0.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:5px">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+          Filtre avancé
+        </button>
+        <div id="filtre-avance-panel" style="display:none;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:14px;margin-top:8px">
+          <!-- Recherche bénéficiaire -->
+          <div style="margin-bottom:10px">
+            <div style="font-size:11px;color:var(--text3);margin-bottom:5px;letter-spacing:.4px">BÉNÉFICIAIRE</div>
+            <input type="text" id="filtre-benef" placeholder="Rechercher un nom..."
+              style="width:100%;padding:9px 12px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none"
+              oninput="renderHist()">
+          </div>
+          <!-- Plage de dates -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+            <div>
+              <div style="font-size:11px;color:var(--text3);margin-bottom:5px;letter-spacing:.4px">DU</div>
+              <input type="date" id="filtre-date-debut"
+                style="width:100%;padding:9px 8px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:13px;color:var(--text);outline:none;font-family:'DM Mono',monospace"
+                oninput="renderHist()">
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--text3);margin-bottom:5px;letter-spacing:.4px">AU</div>
+              <input type="date" id="filtre-date-fin"
+                style="width:100%;padding:9px 8px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:13px;color:var(--text);outline:none;font-family:'DM Mono',monospace"
+                oninput="renderHist()">
+            </div>
+          </div>
+          <!-- Plage de montants -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+            <div>
+              <div style="font-size:11px;color:var(--text3);margin-bottom:5px;letter-spacing:.4px">MONTANT MIN (F)</div>
+              <input type="number" id="filtre-min" placeholder="0" inputmode="numeric"
+                style="width:100%;padding:9px 8px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:13px;font-family:'DM Mono',monospace;color:var(--text);outline:none;-webkit-appearance:none"
+                oninput="renderHist()">
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--text3);margin-bottom:5px;letter-spacing:.4px">MONTANT MAX (F)</div>
+              <input type="number" id="filtre-max" placeholder="∞" inputmode="numeric"
+                style="width:100%;padding:9px 8px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:13px;font-family:'DM Mono',monospace;color:var(--text);outline:none;-webkit-appearance:none"
+                oninput="renderHist()">
+            </div>
+          </div>
+          <!-- Destination -->
+          <div style="margin-bottom:10px">
+            <div style="font-size:11px;color:var(--text3);margin-bottom:5px;letter-spacing:.4px">DESTINATION</div>
+            <select id="filtre-dest" onchange="renderHist()"
+              style="width:100%;padding:9px 12px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:14px;color:var(--text);outline:none;font-family:'DM Sans',sans-serif">
+              <option value="">Toutes destinations</option>
+              <option value="Mali">🇲🇱 Mali</option>
+              <option value="Burkina">🇧🇫 Burkina</option>
+              <option value="Ivoire">🇨🇮 Côte d'Ivoire</option>
+              <option value="Sénégal">🇸🇳 Sénégal</option>
+              <option value="Niger">🇳🇪 Niger</option>
+              <option value="Maroc">🇲🇦 Maroc</option>
+            </select>
+          </div>
+          <button onclick="resetFiltreAvance()"
+            style="width:100%;padding:9px;border-radius:var(--rs);border:0.5px solid var(--border2);background:transparent;color:var(--text3);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif">
+            Réinitialiser les filtres
+          </button>
+          <!-- Résumé des résultats filtrés -->
+          <div id="filtre-stats" style="margin-top:10px"></div>
+        </div>
+      </div>
+
       <div id="sel-bar" class="sel-bar" style="display:none">
         <span id="sel-count" style="font-size:13px;color:var(--text2)">0 sélectionné(s)</span>
         <div style="display:flex;gap:8px">
@@ -400,9 +489,10 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
       </div>
       <!-- Filtre période dashboard -->
       <div class="filter-row">
-        <button class="filter-btn on" onclick="setDashPeriod('tout',this)">Tout</button>
-        <button class="filter-btn" onclick="setDashPeriod('semaine',this)">Semaine</button>
-        <button class="filter-btn" onclick="setDashPeriod('mois',this)">Mois</button>
+        <button class="filter-btn on" id="dp-tout" onclick="setDashPeriod('tout',this)">Tout</button>
+        <button class="filter-btn" id="dp-sem" onclick="setDashPeriod('semaine',this)">Semaine</button>
+        <button class="filter-btn" id="dp-mois" onclick="setDashPeriod('mois',this)">Ce mois</button>
+        <button class="filter-btn" id="dp-3mois" onclick="setDashPeriod('3mois',this)">3 mois</button>
       </div>
       <div class="stat-grid">
         <div class="stat"><div class="stat-label">Total envoyé</div><div class="stat-val sv-b" id="d-envoye">0 F</div></div>
@@ -410,13 +500,37 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
         <div class="stat"><div class="stat-label">Bén. envois</div><div class="stat-val sv-g" id="d-bene">0 MAD</div></div>
         <div class="stat"><div class="stat-label">Bén. réceptions</div><div class="stat-val sv-g" id="d-benr">0 F</div></div>
       </div>
+
+      <!-- Graphique évolution bénéfices -->
+      <div class="section-t">Évolution des bénéfices (30 derniers jours)</div>
+      <div class="card" style="padding:14px">
+        <canvas id="chart-benef" height="140" style="width:100%;display:block"></canvas>
+        <div id="chart-empty" style="display:none;text-align:center;padding:30px 0;color:var(--text3);font-size:13px">Pas encore de données</div>
+      </div>
+
+      <!-- Rapport PDF -->
+      <div class="section-t">Rapport mensuel</div>
+      <div class="card" style="padding:14px 16px">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6">
+          Génère un rapport PDF complet du mois sélectionné.
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <select id="rapport-mois" style="flex:1;padding:10px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:14px;color:var(--text);outline:none;font-family:'DM Sans',sans-serif"></select>
+          <select id="rapport-annee" style="padding:10px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:14px;color:var(--text);outline:none;font-family:'DM Sans',sans-serif"></select>
+        </div>
+        <button onclick="genererPDF()" class="btn" style="background:rgba(255,59,48,0.1);color:#ff3b30;border:0.5px solid rgba(255,59,48,0.25)">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          Générer rapport PDF
+        </button>
+      </div>
+
       <div class="section-t">Paramètres actifs</div>
       <div class="card" style="padding:14px 16px">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px">
           <div><div style="color:var(--text3);font-size:11px;margin-bottom:3px">Taux envoi</div><div style="font-family:'DM Mono',monospace;color:var(--accent)" id="info-taux">1 MAD = 60 F</div></div>
           <div><div style="color:var(--text3);font-size:11px;margin-bottom:3px">Taux réception</div><div style="font-family:'DM Mono',monospace;color:var(--accent)">61 / 61,5 F</div></div>
           <div><div style="color:var(--text3);font-size:11px;margin-bottom:3px">Mes frais Mali</div><div style="font-family:'DM Mono',monospace;color:var(--green)" id="info-fmali">4%</div></div>
-          <div><div style="color:var(--text3);font-size:11px;margin-bottom:3px">Frais hors Mali</div><div style="font-family:'DM Mono',monospace;color:var(--amber)" id="info-fautre">4,5% (3%+1,5%OM)</div></div>
+          <div><div style="color:var(--text3);font-size:11px;margin-bottom:3px">Frais hors Mali</div><div style="font-family:'DM Mono',monospace;color:var(--amber)" id="info-fautre">5,5% (4%+1,5%OM)</div></div>
           <div><div style="color:var(--text3);font-size:11px;margin-bottom:3px">Retrait Mali</div><div style="font-family:'DM Mono',monospace;color:var(--amber)" id="info-ret">1%</div></div>
           <div><div style="color:var(--text3);font-size:11px;margin-bottom:3px">Réception ×0,97</div><div style="font-family:'DM Mono',monospace;color:var(--green)">3%</div></div>
         </div>
@@ -503,28 +617,38 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 
       <!-- 2. BROUILLON BÉNÉFICES (cumul automatique) -->
       <div class="section-t" style="display:flex;justify-content:space-between;align-items:center">
-        <span>Brouillon bénéfices mis de côté</span>
+        <span>Brouillon bénéfices (MAD)</span>
         <button onclick="resetBrouillon()" style="font-size:11px;padding:3px 8px;border-radius:20px;border:0.5px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif">Remettre à 0</button>
       </div>
       <div class="card">
-        <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6">
-          Cumul automatique de tous les bénéfices enregistrés. Plus besoin de brouillon papier.
+        <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.6">
+          Cumul automatique de tes bénéfices en MAD (envois). Les arrondis agent sont séparés.
+        </div>
+        <!-- Filtres brouillon -->
+        <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+          <button class="filter-btn on" id="bf-tous" onclick="setBrouillonFilter('tous',this)">Tout</button>
+          <button class="filter-btn" id="bf-ben" onclick="setBrouillonFilter('ben',this)">Bénéfices</button>
+          <button class="filter-btn" id="bf-arr" onclick="setBrouillonFilter('arr',this)">Arrondis agent</button>
+          <button class="filter-btn" id="bf-mois" onclick="setBrouillonFilter('mois',this)">Ce mois</button>
+          <button class="filter-btn" id="bf-semaine" onclick="setBrouillonFilter('semaine',this)">Semaine</button>
         </div>
         <div id="brouillon-result"></div>
         <div style="margin-top:12px;padding-top:12px;border-top:0.5px solid var(--border)">
-          <div style="font-size:11px;color:var(--text2);margin-bottom:6px;font-weight:500;letter-spacing:.3px">AJOUTER UN BÉNÉFICE MANUEL</div>
-          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
-            <input type="number" id="ben-manuel-montant" inputmode="decimal" placeholder="Montant"
-              style="flex:1;padding:10px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:15px;font-family:'DM Mono',monospace;color:var(--text);outline:none;-webkit-appearance:none">
-            <select id="ben-manuel-devise" style="padding:10px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:14px;color:var(--text);outline:none">
-              <option value="MAD">MAD</option>
-              <option value="XOF">F CFA</option>
-            </select>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:8px;font-weight:500;letter-spacing:.3px">AJOUTER MANUELLEMENT</div>
+          <!-- Type -->
+          <div style="display:flex;gap:6px;margin-bottom:8px">
+            <button id="btn-type-ben" onclick="setBrouillonType('ben')" style="flex:1;padding:8px;border-radius:var(--rs);border:1.5px solid var(--accent);background:rgba(79,138,255,0.1);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Bénéfice</button>
+            <button id="btn-type-arr" onclick="setBrouillonType('arr')" style="flex:1;padding:8px;border-radius:var(--rs);border:0.5px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">Arrondi agent</button>
           </div>
-          <input type="text" id="ben-manuel-note" placeholder="Note (ex: arrondi transaction X)"
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+            <input type="number" id="ben-manuel-montant" inputmode="decimal" placeholder="Montant MAD"
+              style="flex:1;padding:10px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:15px;font-family:'DM Mono',monospace;color:var(--text);outline:none;-webkit-appearance:none">
+            <span style="font-size:13px;color:var(--text2)">MAD</span>
+          </div>
+          <input type="text" id="ben-manuel-note" placeholder="Note (ex: arrondi transaction Moussa)"
             style="width:100%;padding:10px 14px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;margin-bottom:8px">
           <button class="btn btn-primary" onclick="ajouterBrouillon()" style="margin-top:0">
-            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ajouter au brouillon
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ajouter
           </button>
         </div>
       </div>
@@ -627,7 +751,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 
 <script>
 // ── CONSTANTES ────────────────────────────────────────────
-const TAUX=60,F_MALI=0.04,F_AUTRE=0.045,F_RECEP=0.03,RET=0.01,FOND=0.01,OM=0.015;
+const TAUX=60,F_MALI=0.04,F_AUTRE=0.055,F_RECEP=0.03,RET=0.01,FOND=0.01,OM=0.015;
 
 // ── ÉTAT ──────────────────────────────────────────────────
 let mode='envoi',fondActif=false,dest='mali',paysLabel='🇧🇫 Burkina',sensEnvoi='xof';
@@ -757,28 +881,26 @@ function setSensEnvoi(s){
 function calculerEnvoi(){
   const xof=parseFloat(S('montant-xof').value);
   if(!xof||xof<100){hide('result-envoi');hide('arrondi-section');return;}
+  const p=P();
   let html='',totalBrut=0;
   if(dest==='mali'){
-    const fs=sugu(xof),totalXof=xof+fs,madBrut=totalXof/TAUX;
-    const tx=RET+(fondActif?FOND:0)+F_MALI;
+    const fs=sugu(xof),totalXof=xof+fs,madBrut=totalXof/p.taux;
+    const tx=p.ret+(fondActif?FOND:0)+p.fmali;
     totalBrut=madBrut*(1+tx);
     html=`<div class="rr"><span class="rl">Montant au Mali</span><span class="rv">${fmt(xof)} F</span></div>
       <div class="rr"><span class="rl">Frais Sugu</span><span class="rv a">+ ${fmt(fs)} F</span></div>
-      <div class="rr"><span class="rl">Total Sugu ÷ 60</span><span class="rv">${fmt(madBrut,2)} MAD</span></div>
-      <div class="rr"><span class="rl">Retrait 1%</span><span class="rv a">+ ${fmt(madBrut*RET,2)} MAD</span></div>
+      <div class="rr"><span class="rl">Total Sugu ÷ ${p.taux}</span><span class="rv">${fmt(madBrut,2)} MAD</span></div>
+      <div class="rr"><span class="rl">Retrait ${fmt(p.ret*100,1)}%</span><span class="rv a">+ ${fmt(madBrut*p.ret,2)} MAD</span></div>
       ${fondActif?`<div class="rr"><span class="rl">Fond soutien 1%</span><span class="rv a">+ ${fmt(madBrut*FOND,2)} MAD</span></div>`:''}
-      <div class="rr"><span class="rl">Mes frais 4%</span><span class="rv g">+ ${fmt(madBrut*F_MALI,2)} MAD</span></div>
+      <div class="rr"><span class="rl">Mes frais ${fmt(p.fmali*100,1)}%</span><span class="rv g">+ ${fmt(madBrut*p.fmali,2)} MAD</span></div>
       <div class="rr"><span class="rl" style="font-weight:600;color:var(--text)">Total exact</span><span class="rv" style="color:var(--text2)">${fmt(totalBrut,2)} MAD</span></div>`;
   } else {
-    // Hors Mali : XOF ÷ 60 = MAD brut → × (1 + 5,5%) = total client
-    const madBrut=xof/TAUX;
-    totalBrut=madBrut*(1+F_AUTRE);
-    const mesFrais=madBrut*(F_AUTRE-OM); // 3% = mes frais
-    const fraisOM=madBrut*OM;            // 1.5% = frais OM
+    const madBrut=xof/p.taux;
+    totalBrut=madBrut*(1+p.fautre);
     html=`<div class="rr"><span class="rl">Montant</span><span class="rv">${fmt(xof)} F</span></div>
-      <div class="rr"><span class="rl">÷ 60</span><span class="rv">${fmt(madBrut,2)} MAD</span></div>
-      <div class="rr"><span class="rl">Frais OM 1,5%</span><span class="rv a">+ ${fmt(fraisOM,2)} MAD</span></div>
-      <div class="rr"><span class="rl">Mes frais 3%</span><span class="rv g">+ ${fmt(mesFrais,2)} MAD</span></div>
+      <div class="rr"><span class="rl">÷ ${p.taux}</span><span class="rv">${fmt(madBrut,2)} MAD</span></div>
+      <div class="rr"><span class="rl">Frais OM ${fmt(p.om*100,1)}%</span><span class="rv a">+ ${fmt(madBrut*p.om,2)} MAD</span></div>
+      <div class="rr"><span class="rl">Mes frais ${fmt(p.fmali*100,1)}%</span><span class="rv g">+ ${fmt(madBrut*p.fmali,2)} MAD</span></div>
       <div class="rr"><span class="rl" style="font-weight:600;color:var(--text)">Total exact</span><span class="rv" style="color:var(--text2)">${fmt(totalBrut,2)} MAD</span></div>`;
   }
   dernierBrut=totalBrut;
@@ -795,28 +917,25 @@ function calculerEnvoiMAD(){
 
   if(dest==='mali'){
     // Mali : MAD × 0,96 × 60 − Sugu = net Mali
-    const madNet=mad*0.96,mesFrais=mad*F_MALI,xofBrut=madNet*TAUX;
+    const p=P();const madNet=mad*(1-p.fmali),mesFrais=mad*p.fmali,xofBrut=madNet*p.taux;
     const fs=sugu(xofBrut),xofNet=xofBrut-fs;
     S('result-emad').innerHTML=`
       <div class="rr"><span class="rl">Montant client (MAD)</span><span class="rv">${fmt(mad,2)} MAD</span></div>
-      <div class="rr"><span class="rl">× 0,96 (−4% frais)</span><span class="rv">${fmt(madNet,2)} MAD</span></div>
-      <div class="rr"><span class="rl">× 60</span><span class="rv">${fmt(xofBrut)} F</span></div>
+      <div class="rr"><span class="rl">× ${fmt(1-p.fmali,2)} (−${fmt(p.fmali*100,1)}% frais)</span><span class="rv">${fmt(madNet,2)} MAD</span></div>
+      <div class="rr"><span class="rl">× ${p.taux}</span><span class="rv">${fmt(xofBrut)} F</span></div>
       <div class="rr"><span class="rl">− Frais Sugu</span><span class="rv a">− ${fmt(fs)} F</span></div>
       <div class="rr"><span class="rl" style="font-weight:600;color:var(--text)">Net reçu au Mali</span><span class="rv big">${fmt(xofNet)} F</span></div>
       <div class="rr"><span class="rl">Mon bénéfice (4%)</span><span class="rv g">+ ${fmt(mesFrais,2)} MAD (≈ ${fmt(mesFrais*TAUX)} F)</span></div>`;
   } else {
     // Hors Mali : MAD × (1 − 0,055) × 60 = XOF net reçu (pas de Sugu)
-    const facteur=1-F_AUTRE; // 0.945
-    const mesFrais=mad*(F_AUTRE-OM); // mes 3%
-    const fraisOM=mad*OM;            // 1,5% OM
-    const xofNet=mad*facteur*TAUX;
+    const p2=P();const facteur=1-p2.fautre;const mesFrais=mad*p2.fmali;const fraisOM=mad*p2.om;const xofNet=mad*facteur*p2.taux;
     S('result-emad').innerHTML=`
       <div class="rr"><span class="rl">Montant client (MAD)</span><span class="rv">${fmt(mad,2)} MAD</span></div>
       <div class="rr"><span class="rl">Frais OM 1,5%</span><span class="rv a">− ${fmt(fraisOM,2)} MAD</span></div>
-      <div class="rr"><span class="rl">Mes frais 3%</span><span class="rv a">− ${fmt(mesFrais,2)} MAD</span></div>
+      <div class="rr"><span class="rl">Mes frais 4%</span><span class="rv a">− ${fmt(mesFrais,2)} MAD</span></div>
       <div class="rr"><span class="rl">× 0,945 × 60</span><span class="rv">${fmt(mad*facteur,2)} MAD × 60</span></div>
       <div class="rr"><span class="rl" style="font-weight:600;color:var(--text)">Net reçu (${paysLabel})</span><span class="rv big">${fmt(xofNet)} F</span></div>
-      <div class="rr"><span class="rl">Mon bénéfice (3%)</span><span class="rv g">+ ${fmt(mesFrais,2)} MAD (≈ ${fmt(mesFrais*TAUX)} F)</span></div>`;
+      <div class="rr"><span class="rl">Mon bénéfice (4%)</span><span class="rv g">+ ${fmt(mesFrais,2)} MAD (≈ ${fmt(mesFrais*TAUX)} F)</span></div>`;
   }
   show('result-emad');
 }
@@ -827,8 +946,8 @@ function calculerArrondi(){
   if(!arr||!dernierBrut){hide('ben-arrondi');return;}
   const xof=parseFloat(S('montant-xof').value)||0;
   // Base bénéfice = mes % sur MAD brut (4% Mali, 3% hors Mali)
-  const madBrut=dest==='mali'?(xof+sugu(xof))/TAUX:xof/TAUX;
-  const tauxBase=dest==='mali'?F_MALI:(F_AUTRE-OM);
+  const p=P();const madBrut=dest==='mali'?(xof+sugu(xof))/p.taux:xof/p.taux;
+  const tauxBase=dest==='mali'?p.fmali:p.fmali;
   const base=madBrut*tauxBase,gain=arr-dernierBrut,tot=base+gain;
   S('ben-base').textContent=fmt(base,2)+' MAD';
   S('ben-gain').textContent=(gain>=0?'+':'')+fmt(gain,2)+' MAD';
@@ -846,10 +965,10 @@ function validerEnvoi(){
     let xofNet,benefice;
     if(dest==='mali'){
       const madNet=mad*0.96,xofBrut=madNet*TAUX,fs=sugu(xofBrut);
-      xofNet=xofBrut-fs;benefice=mad*F_MALI;
+      xofNet=xofBrut-fs;benefice=mad*pv.fmali;
     } else {
-      xofNet=mad*(1-F_AUTRE)*TAUX; // pas de Sugu hors Mali
-      benefice=mad*(F_AUTRE-OM);   // mes 3%
+      xofNet=mad*(1-pv.fautre)*pv.taux;
+      benefice=mad*pv.fmali;
     }
     save({id:Date.now(),date:new Date().toISOString(),beneficiaire:benef,type:'envoi',
       destination:dest==='mali'?'🇲🇱 Mali':paysLabel,
@@ -859,9 +978,8 @@ function validerEnvoi(){
     const xof=parseFloat(S('montant-xof').value),arr=parseFloat(S('montant-arrondi').value);
     if(!xof||xof<100){toast('Montant invalide','var(--red)');return;}
     if(!arr){toast('Entrez le montant à dicter','var(--red)');return;}
-    const madBrut=dest==='mali'?(xof+sugu(xof))/TAUX:xof/TAUX;
-    const tauxBase=dest==='mali'?F_MALI:(F_AUTRE-OM);
-    const ben=madBrut*tauxBase+(arr-dernierBrut);
+    const p=P();const madBrut=dest==='mali'?(xof+sugu(xof))/p.taux:xof/p.taux;
+    const ben=madBrut*p.fmali+(arr-dernierBrut);
     save({id:Date.now(),date:new Date().toISOString(),beneficiaire:benef,type:'envoi',
       destination:dest==='mali'?'🇲🇱 Mali':paysLabel,
       montantXof:xof,montantMAD:arr,fondSoutien:fondActif&&dest==='mali',
@@ -902,7 +1020,7 @@ function calculerRecep(){
   if(sensR==='xof'){
     const xof=parseFloat(S('recep-xof').value);
     if(!xof||xof<100){hide('result-recep');return;}
-    const xofNet=xof*0.97,madExact=xofNet/tauxR;
+    const xofNet=xof*(1-F_RECEP),madExact=xofNet/tauxR;
     DR.madBrut=madExact;DR.xofDepot=xof;
     S('result-recep').innerHTML=`
       <div class="rr"><span class="rl">Dépôt au Mali</span><span class="rv">${fmt(xof)} F</span></div>
@@ -919,7 +1037,7 @@ function calculerRecep(){
     S('result-recep').innerHTML=`
       <div class="rr"><span class="rl">MAD à remettre</span><span class="rv">${fmt(mad,2)} MAD</span></div>
       <div class="rr"><span class="rl">× ${tauxR}</span><span class="rv">${fmt(xofBase)} F</span></div>
-      <div class="rr"><span class="rl">+ Mes frais 3%</span><span class="rv g">+ ${fmt(xofBase*F_RECEP)} F</span></div>
+      <div class="rr"><span class="rl">+ Mes frais 4%</span><span class="rv g">+ ${fmt(xofBase*F_RECEP)} F</span></div>
       <div class="rr"><span class="rl" style="font-weight:600;color:var(--text)">Dépôt exact</span><span class="rv" style="color:var(--text2)">${fmt(xofBrut)} F</span></div>`;
     show('result-recep');
     S('arr-xof').value=a50(xofBrut);show('aw-rmad');hide('ben-rmad');calculerArrondiRecep();
@@ -989,18 +1107,87 @@ function setFilter(f,btn){
   btn.classList.add('on');renderHist();
 }
 
+function setFilter(f,btn){
+  activeFilter=f;
+  // Ne reset que les boutons du filter-row de l'historique
+  S('page-hist').querySelectorAll('.filter-row .filter-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');renderHist();
+}
+
+// ── FILTRES AVANCÉS HISTORIQUE ────────────────────────────
+let filtreAvanceVisible=false;
+function toggleFiltreAvance(){
+  filtreAvanceVisible=!filtreAvanceVisible;
+  const p=S('filtre-avance-panel');
+  const b=S('btn-filtre-avance');
+  p.style.display=filtreAvanceVisible?'block':'none';
+  b.style.color=filtreAvanceVisible?'var(--accent)':'var(--text2)';
+  b.style.borderColor=filtreAvanceVisible?'var(--accent)':'var(--border2)';
+}
+function resetFiltreAvance(){
+  ['filtre-benef','filtre-date-debut','filtre-date-fin','filtre-min','filtre-max'].forEach(id=>{if(S(id))S(id).value='';});
+  S('filtre-dest').value='';
+  renderHist();
+}
+
 function filteredTxs(){
   let txs=getTxs();
   const now=new Date();
-  if(activeFilter==='envoi')txs=txs.filter(t=>t.type==='envoi');
-  else if(activeFilter==='recep')txs=txs.filter(t=>t.type==='recep');
-  else if(activeFilter==='semaine'){
-    const lim=new Date(now-7*86400000);
-    txs=txs.filter(t=>new Date(t.date)>=lim);
-  } else if(activeFilter==='mois'){
-    txs=txs.filter(t=>{const d=new Date(t.date);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
+
+  // Filtres rapides
+  if(activeFilter==='envoi') txs=txs.filter(t=>t.type==='envoi');
+  else if(activeFilter==='recep') txs=txs.filter(t=>t.type==='recep');
+  else if(activeFilter==='assoc') txs=txs.filter(t=>t.viaAssoc);
+  else if(activeFilter==='semaine'){const lim=new Date(now-7*86400000);txs=txs.filter(t=>new Date(t.date)>=lim);}
+  else if(activeFilter==='mois') txs=txs.filter(t=>{const d=new Date(t.date);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
+
+  // Filtres avancés
+  if(filtreAvanceVisible){
+    const benef=(S('filtre-benef')?.value||'').toLowerCase().trim();
+    const dateD=S('filtre-date-debut')?.value;
+    const dateF=S('filtre-date-fin')?.value;
+    const min=parseFloat(S('filtre-min')?.value)||0;
+    const max=parseFloat(S('filtre-max')?.value)||Infinity;
+    const destF=(S('filtre-dest')?.value||'').toLowerCase();
+
+    if(benef) txs=txs.filter(t=>(t.beneficiaire||'').toLowerCase().includes(benef));
+    if(dateD) txs=txs.filter(t=>new Date(t.date)>=new Date(dateD));
+    if(dateF) txs=txs.filter(t=>new Date(t.date)<=new Date(dateF+'T23:59:59'));
+    if(min>0) txs=txs.filter(t=>(t.montantXof||0)>=min);
+    if(max<Infinity) txs=txs.filter(t=>(t.montantXof||0)<=max);
+    if(destF) txs=txs.filter(t=>(t.destination||'').toLowerCase().includes(destF));
+
+    // Stats filtrées
+    const el=S('filtre-stats');
+    if(el){
+      if(txs.length>0){
+        const totXof=txs.reduce((s,t)=>s+(t.montantXof||0),0);
+        const totBen=txs.filter(t=>t.type==='envoi').reduce((s,t)=>s+(t.benefice||0),0);
+        el.innerHTML=`<div style="background:var(--bg3);border-radius:var(--rs);padding:10px 12px;font-size:12px;margin-top:8px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="color:var(--text3)">${txs.length} résultat(s)</span>
+            <span style="color:var(--accent);font-family:'DM Mono',monospace">${fmt(totXof)} F</span>
+          </div>
+          <div style="display:flex;justify-content:space-between">
+            <span style="color:var(--text3)">Bénéfice période</span>
+            <span style="color:var(--green);font-family:'DM Mono',monospace">+${fmt(totBen,2)} MAD</span>
+          </div>
+        </div>`;
+      } else {
+        el.innerHTML='<div style="text-align:center;padding:8px;color:var(--text3);font-size:12px;margin-top:8px">Aucun résultat</div>';
+      }
+    }
   }
   return txs;
+}
+
+// ── FILTRES BROUILLON ─────────────────────────────────────
+let brouillonFilter='tous';
+function setBrouillonFilter(f,btn){
+  brouillonFilter=f;
+  ['bf-tous','bf-ben','bf-arr','bf-mois','bf-semaine'].forEach(id=>{const el=S(id);if(el)el.classList.remove('on');});
+  btn.classList.add('on');
+  renderBrouillon();
 }
 
 // ── SUPPRESSION ───────────────────────────────────────────
@@ -1131,7 +1318,7 @@ function renderHist(){
 function setDashPeriod(p,btn){
   dashPeriod=p;
   document.querySelectorAll('#page-dash .filter-row .filter-btn').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');renderDash();
+  btn.classList.add('on');renderDash();setTimeout(renderGraph,100);
 }
 
 function renderDash(){
@@ -1139,6 +1326,7 @@ function renderDash(){
   const now=new Date();
   if(dashPeriod==='semaine'){const lim=new Date(now-7*86400000);txs=txs.filter(t=>new Date(t.date)>=lim);}
   else if(dashPeriod==='mois'){txs=txs.filter(t=>{const d=new Date(t.date);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});}
+  else if(dashPeriod==='3mois'){const lim=new Date(now-90*86400000);txs=txs.filter(t=>new Date(t.date)>=lim);}
 
   let totXofE=0,totMadR=0,benE=0,benR=0;
   txs.forEach(t=>{
@@ -1160,7 +1348,7 @@ function showPage(p){
     S('nav-'+x).className='nav-btn'+(x===p?' active':'');
   });
   if(p==='hist')renderHist();
-  if(p==='dash'){renderDash();renderObjectif();}
+  if(p==='dash'){renderDash();renderObjectif();setTimeout(renderGraph,100);}
   if(p==='treo'){loadSoldes();simulerLiquidation();renderAgent();renderMargeTaux();renderBrouillon();}
   if(p==='settings')loadSettings();
 }
@@ -1283,9 +1471,11 @@ function parserSMS(){
 
   let parsed=null;
 
+  // Normaliser le texte (multi-lignes → une seule ligne)
+  const txtN=txt.replace(/\n/g,' ').replace(/\r/g,' ').replace(/\s+/g,' ');
+
   // TYPE 1 : Transfert envoyé vers Mali
-  // "Votre transfert de 40200 FCFA vers le 71847081 a reussi. Frais: 125 FCFA. Nouveau solde:411062 FCFA. ID:PP260512..."
-  const m1=txt.match(/transfert de ([\d\s]+)\s*FCFA vers le ([\d]+).*?Frais[:\s]*([\d\s]+)\s*FCFA.*?solde[:\s]*([\d\s]+)\s*FCFA.*?ID[:\s]*([A-Z0-9\.]+)/i);
+  const m1=txtN.match(/transfert de ([\d\s]+)\s*FCFA vers le ([\d]+).*?Frais[:\s]*([\d\s]+)\s*FCFA.*?solde[:\s]*([\d\s]+)\s*FCFA.*?ID[:\s]*([A-Z0-9\.]+)/i);
   if(m1){
     parsed={
       type:'envoi_mali',
@@ -1298,9 +1488,10 @@ function parserSMS(){
   }
 
   // TYPE 2 : Transfert hors Mali (Côte d'Ivoire, etc.)
-  // "Vous avez envoye 50000 FCFA au +2250708969036 (Cote d Ivoire) avec retrait gratuit Frais 750 FCFA. Nouveau solde : 195737 FCFA ID : 374e0d8f"
+  // "Vous avez envoye 50000 FCFA au +2250708969036 (Cote d Ivoire) avec retrait gratuit Frais 750 FCFA.\nNouveau solde : 195737 FCFA\nID : 374e0d8f"
   if(!parsed){
-    const m2=txt.match(/envoye ([\d\s]+)\s*FCFA au ([+\d]+)\s*\(([^)]+)\).*?Frais\s*([\d\s]+)\s*FCFA.*?solde[:\s]*([\d\s]+)\s*FCFA.*?ID[:\s]*([A-Za-z0-9]+)/i);
+    const txt2=txt.replace(/\n/g,' ').replace(/\s+/g,' ');
+    const m2=txt2.match(/envoye\s+([\d\s]+)\s*FCFA\s+au\s+([+\d]+)\s*\(([^)]+)\).*?Frais\s+([\d\s]+)\s*FCFA.*?solde\s*:\s*([\d\s]+)\s*FCFA.*?ID\s*:\s*([A-Za-z0-9]+)/i);
     if(m2){
       parsed={
         type:'envoi_autre',
@@ -1503,11 +1694,24 @@ function getObjectif(){
 }
 function editObjectif(){
   const obj=getObjectif();
-  const montant=prompt('Objectif mensuel de bénéfice :',obj.montant||'');
-  if(montant===null)return;
-  const devise=confirm('En MAD ? (Annuler = en F CFA)')?'MAD':'XOF';
-  localStorage.setItem('tp_objectif',JSON.stringify({montant:parseFloat(montant)||0,devise}));
-  renderObjectif();haptic();toast('✓ Objectif enregistré');
+  const card=S('objectif-card');
+  card.innerHTML=`
+    <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Fixe ton objectif mensuel de bénéfice en MAD</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+      <input type="number" id="obj-input" inputmode="decimal" value="${obj.montant||''}" placeholder="Ex: 500"
+        style="flex:1;padding:11px;background:var(--bg3);border:1.5px solid var(--accent);border-radius:var(--rs);font-size:18px;font-weight:600;font-family:'DM Mono',monospace;color:var(--text);outline:none;-webkit-appearance:none">
+      <span style="font-size:14px;color:var(--text2)">MAD</span>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="validerObjectif()" style="flex:1;padding:11px;border-radius:var(--rs);border:none;background:var(--accent);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Enregistrer</button>
+      <button onclick="renderObjectif()" style="padding:11px 16px;border-radius:var(--rs);border:0.5px solid var(--border2);background:transparent;color:var(--text2);font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif">Annuler</button>
+    </div>`;
+}
+function validerObjectif(){
+  const montant=parseFloat(S('obj-input').value)||0;
+  localStorage.setItem('tp_objectif',JSON.stringify({montant,devise:'MAD'}));
+  haptic();toast('✓ Objectif enregistré');
+  renderObjectif();
 }
 function renderObjectif(){
   const obj=getObjectif();
@@ -1600,69 +1804,90 @@ function resetBrouillon(){
     localStorage.removeItem('tp_brouillon');renderBrouillon();haptic();toast('Brouillon remis à zéro','var(--amber)');
   }
 }
+let brouillonType='ben'; // 'ben' ou 'arr'
+function setBrouillonType(t){
+  brouillonType=t;
+  const bb=S('btn-type-ben'),ba=S('btn-type-arr');
+  if(t==='ben'){
+    bb.style.cssText='flex:1;padding:8px;border-radius:var(--rs);border:1.5px solid var(--accent);background:rgba(79,138,255,0.1);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif';
+    ba.style.cssText='flex:1;padding:8px;border-radius:var(--rs);border:0.5px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;font-family:DM Sans,sans-serif';
+  } else {
+    ba.style.cssText='flex:1;padding:8px;border-radius:var(--rs);border:1.5px solid var(--amber);background:rgba(240,165,0,0.1);color:var(--amber);font-size:12px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif';
+    bb.style.cssText='flex:1;padding:8px;border-radius:var(--rs);border:0.5px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;font-family:DM Sans,sans-serif';
+  }
+}
 function ajouterBrouillon(){
   const montant=parseFloat(S('ben-manuel-montant').value);
-  const devise=S('ben-manuel-devise').value;
-  const note=S('ben-manuel-note').value.trim()||'Bénéfice manuel';
+  const note=S('ben-manuel-note').value.trim()||(brouillonType==='arr'?'Arrondi agent':'Bénéfice manuel');
   if(!montant||montant<=0){toast('Montant invalide','var(--red)');return;}
   const b=getBrouillon();
-  b.unshift({id:Date.now(),date:new Date().toISOString(),montant,devise,note,source:'manuel'});
+  b.unshift({id:Date.now(),date:new Date().toISOString(),montant,devise:'MAD',note,source:brouillonType==='arr'?'arrondi':'manuel'});
   localStorage.setItem('tp_brouillon',JSON.stringify(b));
   S('ben-manuel-montant').value='';S('ben-manuel-note').value='';
-  blurAll();haptic();toast('✓ Ajouté au brouillon');
+  blurAll();haptic();toast('✓ Ajouté');
   renderBrouillon();
 }
 function renderBrouillon(){
-  // Auto-sync depuis les transactions enregistrées
   const txs=getTxs();
-  const b=getBrouillon();
+  let b=getBrouillon();
   const el=S('brouillon-result');
+  const now=new Date();
 
-  // Calcul total depuis transactions
-  let totalTxMAD=0,totalTxXof=0;
-  txs.forEach(t=>{
-    if(t.type==='envoi') totalTxMAD+=t.benefice||0;
-    else totalTxXof+=t.benefice||0;
+  // Appliquer le filtre brouillon
+  let txsFilt=txs.filter(t=>t.type==='envoi');
+  if(brouillonFilter==='mois') txsFilt=txsFilt.filter(t=>{const d=new Date(t.date);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
+  else if(brouillonFilter==='semaine'){const lim=new Date(now-7*86400000);txsFilt=txsFilt.filter(t=>new Date(t.date)>=lim);}
+
+  let bFilt=b;
+  if(brouillonFilter==='ben') bFilt=b.filter(x=>x.source!=='arrondi');
+  else if(brouillonFilter==='arr') bFilt=b.filter(x=>x.source==='arrondi');
+  else if(brouillonFilter==='mois') bFilt=b.filter(x=>{const d=new Date(x.date);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
+  else if(brouillonFilter==='semaine'){const lim=new Date(now-7*86400000);bFilt=b.filter(x=>new Date(x.date)>=lim);}
+
+  let totalTxMAD=0;
+  txsFilt.forEach(t=>{totalTxMAD+=t.benefice||0;});
+
+  let arrondisMAD=0,benManuelsMAD=0;
+  bFilt.forEach(x=>{
+    if(x.source==='arrondi') arrondisMAD+=x.devise==='MAD'?x.montant:x.montant/TAUX;
+    else benManuelsMAD+=x.devise==='MAD'?x.montant:x.montant/TAUX;
   });
 
-  // Calcul total brouillon manuel
-  let bManuelMAD=0,bManuelXof=0;
-  b.forEach(x=>{
-    if(x.devise==='MAD')bManuelMAD+=x.montant;
-    else bManuelXof+=x.montant;
-  });
-
-  const grandTotalXof=totalTxXof+(totalTxMAD*TAUX)+bManuelXof+(bManuelMAD*TAUX);
+  const totalMAD=totalTxMAD+benManuelsMAD;
 
   el.innerHTML=`
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
       <div style="background:var(--bg3);border-radius:var(--rs);padding:10px;border:0.5px solid rgba(46,204,138,0.2)">
-        <div style="font-size:10px;color:var(--text3);margin-bottom:4px;letter-spacing:.4px">DEPUIS TRANSACTIONS</div>
-        <div style="font-size:14px;font-weight:600;font-family:'DM Mono',monospace;color:var(--green)">${fmt(totalTxMAD,2)} MAD</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:2px">${fmt(totalTxXof)} F</div>
+        <div style="font-size:10px;color:var(--text3);margin-bottom:4px;letter-spacing:.4px">BÉNÉFICES ENVOIS</div>
+        <div style="font-size:16px;font-weight:600;font-family:'DM Mono',monospace;color:var(--green)">${fmt(totalTxMAD,2)} MAD</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">≈ ${fmt(totalTxMAD*TAUX)} F</div>
       </div>
-      <div style="background:var(--bg3);border-radius:var(--rs);padding:10px;border:0.5px solid rgba(160,139,250,0.2)">
-        <div style="font-size:10px;color:var(--text3);margin-bottom:4px;letter-spacing:.4px">AJOUTS MANUELS</div>
-        <div style="font-size:14px;font-weight:600;font-family:'DM Mono',monospace;color:var(--purple)">${fmt(bManuelMAD,2)} MAD</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:2px">${fmt(bManuelXof)} F</div>
+      <div style="background:var(--bg3);border-radius:var(--rs);padding:10px;border:0.5px solid rgba(240,165,0,0.2)">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:4px;letter-spacing:.4px">ARRONDIS AGENT</div>
+        <div style="font-size:16px;font-weight:600;font-family:'DM Mono',monospace;color:var(--amber)">${fmt(arrondisMAD,2)} MAD</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">pour payer l'agent</div>
       </div>
     </div>
-    <div style="background:rgba(46,204,138,0.07);border:0.5px solid rgba(46,204,138,0.2);border-radius:var(--rs);padding:12px">
-      <div style="font-size:11px;color:var(--text3);letter-spacing:.4px;margin-bottom:4px">TOTAL GÉNÉRAL ESTIMÉ</div>
-      <div style="font-size:24px;font-weight:600;font-family:'DM Mono',monospace;color:var(--green)">${fmt(grandTotalXof)} F</div>
-      <div style="font-size:12px;color:var(--text2);margin-top:3px">≈ ${fmt(grandTotalXof/TAUX,2)} MAD</div>
+    <div style="background:rgba(46,204,138,0.07);border:0.5px solid rgba(46,204,138,0.2);border-radius:var(--rs);padding:12px;margin-bottom:10px">
+      <div style="font-size:11px;color:var(--text3);letter-spacing:.4px;margin-bottom:4px">BÉNÉFICES NETS (MAD)</div>
+      <div style="font-size:24px;font-weight:600;font-family:'DM Mono',monospace;color:var(--green)">${fmt(totalMAD,2)} MAD</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:3px">≈ ${fmt(totalMAD*TAUX)} F CFA</div>
     </div>
-    ${b.length>0?`<div style="margin-top:10px">${b.slice(0,5).map(x=>`
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:0.5px solid var(--border)">
+    ${bFilt.length>0?`<div>${bFilt.slice(0,8).map(x=>{
+      const isArrondi=x.source==='arrondi';
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:0.5px solid var(--border)">
         <div>
           <div style="font-size:13px;font-weight:500">${x.note}</div>
-          <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace">${new Date(x.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'short'})}</div>
+          <div style="display:flex;gap:6px;margin-top:3px">
+            <span style="font-size:10px;padding:2px 7px;border-radius:20px;background:${isArrondi?'rgba(240,165,0,0.1)':'rgba(46,204,138,0.1)'};color:${isArrondi?'var(--amber)':'var(--green)'}">${isArrondi?'arrondi agent':'bénéfice'}</span>
+            <span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace">${new Date(x.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'short'})}</span>
+          </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px">
-          <div style="font-size:13px;font-weight:600;font-family:'DM Mono',monospace;color:var(--purple)">+${fmt(x.montant,2)} ${x.devise}</div>
+          <div style="font-size:13px;font-weight:600;font-family:'DM Mono',monospace;color:${isArrondi?'var(--amber)':'var(--green)'}">+${fmt(x.montant,2)} ${x.devise}</div>
           <div onclick="suppBrouillon(${x.id})" style="font-size:11px;color:var(--red);cursor:pointer">✕</div>
         </div>
-      </div>`).join('')}
+      </div>`}).join('')}
     </div>`:''}`;
 }
 function suppBrouillon(id){
@@ -1761,32 +1986,34 @@ function suppDepense(id){
 function getCfg(){
   try{return JSON.parse(localStorage.getItem('tp_cfg'))||{};}catch{return{};}
 }
-function applyParams(){
-  const cfg=getCfg();
-  if(cfg.taux)window._TAUX=cfg.taux; else window._TAUX=TAUX;
-  if(cfg.fmali)window._F_MALI=cfg.fmali/100; else window._F_MALI=F_MALI;
-  if(cfg.fom)window._OM=cfg.fom/100; else window._OM=OM;
-  if(cfg.fautre)window._F_AUTRE=(window._F_MALI)+(window._OM);
-  else window._F_AUTRE=F_AUTRE;
-  if(cfg.ret)window._RET=cfg.ret/100; else window._RET=RET;
+// Retourne les paramètres actifs (localStorage > constantes par défaut)
+function P(){
+  const c=getCfg();
+  return {
+    taux:  c.taux  ? parseFloat(c.taux)   : TAUX,
+    fmali: c.fmali ? c.fmali/100          : F_MALI,
+    om:    c.fom   ? c.fom/100            : OM,
+    ret:   c.ret   ? c.ret/100            : RET,
+    get fautre(){ return this.fmali+this.om; }
+  };
 }
+function applyParams(){} // garde la compatibilité des appels existants
 function saveParams(){
   const cfg={
-    taux:parseFloat(S('cfg-taux').value)||TAUX,
-    fmali:parseFloat(S('cfg-fmali').value)||F_MALI*100,
-    fom:parseFloat(S('cfg-fom').value)||OM*100,
-    ret:parseFloat(S('cfg-ret').value)||RET*100
+    taux:  parseFloat(S('cfg-taux').value) ||TAUX,
+    fmali: parseFloat(S('cfg-fmali').value)||F_MALI*100,
+    fom:   parseFloat(S('cfg-fom').value)  ||OM*100,
+    ret:   parseFloat(S('cfg-ret').value)  ||RET*100
   };
   localStorage.setItem('tp_cfg',JSON.stringify(cfg));
-  applyParams();
-  blurAll();haptic();toast('✓ Paramètres enregistrés');
+  blurAll();haptic();toast('✓ Paramètres enregistrés — recalcul actif');
 }
 function loadSettings(){
   const cfg=getCfg();
-  S('cfg-taux').value=cfg.taux||TAUX;
-  S('cfg-fmali').value=cfg.fmali||(F_MALI*100);
-  S('cfg-fom').value=cfg.fom||(OM*100);
-  S('cfg-ret').value=cfg.ret||(RET*100);
+  S('cfg-taux').value= cfg.taux  ||TAUX;
+  S('cfg-fmali').value=cfg.fmali ||(F_MALI*100);
+  S('cfg-fom').value=  cfg.fom   ||(OM*100);
+  S('cfg-ret').value=  cfg.ret   ||(RET*100);
   S('btn-remove-pin').style.display=localStorage.getItem('tp_pin')?'block':'none';
 }
 
@@ -1863,11 +2090,272 @@ function exportCSV(){
   toast('✓ Export CSV téléchargé');
 }
 
+// ── GRAPHIQUE ÉVOLUTION ───────────────────────────────────
+function renderGraph(){
+  const canvas=S('chart-benef');
+  const empty=S('chart-empty');
+  if(!canvas)return;
+  const txs=getTxs();
+  if(!txs.length){canvas.style.display='none';empty.style.display='block';return;}
+
+  // Grouper par jour sur les 30 derniers jours
+  const days=30;
+  const now=new Date();
+  const map={};
+  for(let i=days-1;i>=0;i--){
+    const d=new Date(now);d.setDate(d.getDate()-i);
+    const k=d.toISOString().slice(0,10);
+    map[k]=0;
+  }
+  txs.forEach(t=>{
+    const k=new Date(t.date).toISOString().slice(0,10);
+    if(k in map){
+      // Convertir tout en MAD
+      const ben=t.type==='envoi'?(t.benefice||0):(t.benefice||0)/TAUX;
+      map[k]+=ben;
+    }
+  });
+
+  const labels=Object.keys(map);
+  const values=Object.values(map);
+  const maxVal=Math.max(...values,0.1);
+
+  // Calcul cumulatif
+  const cumul=[];let sum=0;
+  values.forEach(v=>{sum+=v;cumul.push(sum);});
+  const maxCumul=Math.max(...cumul,0.1);
+
+  const W=canvas.offsetWidth||340;
+  const H=140;
+  canvas.width=W*2;canvas.height=H*2;canvas.style.width=W+'px';canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d');
+  ctx.scale(2,2);
+
+  const pad={t:10,r:10,b:28,l:42};
+  const cw=W-pad.l-pad.r;
+  const ch=H-pad.t-pad.b;
+
+  // Fond
+  ctx.clearRect(0,0,W,H);
+
+  // Lignes de grille
+  ctx.strokeStyle='rgba(255,255,255,0.05)';ctx.lineWidth=0.5;
+  for(let i=0;i<=4;i++){
+    const y=pad.t+ch*(1-i/4);
+    ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+cw,y);ctx.stroke();
+    ctx.fillStyle='rgba(136,136,160,0.6)';ctx.font='9px DM Mono,monospace';ctx.textAlign='right';
+    ctx.fillText(fmt(maxCumul*i/4,1),pad.l-4,y+3);
+  }
+
+  // Courbe cumulative (aire)
+  const step=cw/(labels.length-1||1);
+  ctx.beginPath();
+  ctx.moveTo(pad.l,pad.t+ch);
+  cumul.forEach((v,i)=>{
+    const x=pad.l+i*step;
+    const y=pad.t+ch*(1-v/maxCumul);
+    if(i===0)ctx.lineTo(x,y);else ctx.lineTo(x,y);
+  });
+  ctx.lineTo(pad.l+cw,pad.t+ch);
+  ctx.closePath();
+  const grad=ctx.createLinearGradient(0,pad.t,0,pad.t+ch);
+  grad.addColorStop(0,'rgba(46,204,138,0.3)');
+  grad.addColorStop(1,'rgba(46,204,138,0.02)');
+  ctx.fillStyle=grad;ctx.fill();
+
+  // Ligne cumulative
+  ctx.beginPath();ctx.strokeStyle='#2ecc8a';ctx.lineWidth=1.5;ctx.lineJoin='round';
+  cumul.forEach((v,i)=>{
+    const x=pad.l+i*step;
+    const y=pad.t+ch*(1-v/maxCumul);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+
+  // Barres journalières
+  const barW=Math.max(2,step*0.5);
+  values.forEach((v,i)=>{
+    if(v<=0)return;
+    const x=pad.l+i*step-barW/2;
+    const bh=ch*(v/maxCumul)*0.6;
+    const y=pad.t+ch-bh;
+    ctx.fillStyle='rgba(79,138,255,0.35)';
+    ctx.beginPath();ctx.roundRect?ctx.roundRect(x,y,barW,bh,1):ctx.rect(x,y,barW,bh);
+    ctx.fill();
+  });
+
+  // Labels dates (début, milieu, fin)
+  ctx.fillStyle='rgba(85,85,104,0.8)';ctx.font='8px DM Sans,sans-serif';ctx.textAlign='center';
+  [0,Math.floor(labels.length/2),labels.length-1].forEach(i=>{
+    const d=new Date(labels[i]);
+    const lbl=`${d.getDate()}/${d.getMonth()+1}`;
+    ctx.fillText(lbl,pad.l+i*step,H-8);
+  });
+
+  // Légende
+  ctx.fillStyle='rgba(46,204,138,0.8)';ctx.font='9px DM Sans,sans-serif';ctx.textAlign='left';
+  ctx.fillText('Cumul bénéfices (MAD)',pad.l,pad.t-1);
+
+  canvas.style.display='block';empty.style.display='none';
+}
+
+// ── RAPPORT PDF ───────────────────────────────────────────
+function initRapportSelects(){
+  const moisNoms=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  const selM=S('rapport-mois'),selA=S('rapport-annee');
+  if(!selM||!selA)return;
+  const now=new Date();
+  moisNoms.forEach((m,i)=>{
+    const o=document.createElement('option');
+    o.value=i;o.textContent=m;
+    if(i===now.getMonth())o.selected=true;
+    selM.appendChild(o);
+  });
+  for(let y=now.getFullYear();y>=now.getFullYear()-2;y--){
+    const o=document.createElement('option');
+    o.value=y;o.textContent=y;
+    if(y===now.getFullYear())o.selected=true;
+    selA.appendChild(o);
+  }
+}
+
+function genererPDF(){
+  const mois=parseInt(S('rapport-mois').value);
+  const annee=parseInt(S('rapport-annee').value);
+  const moisNoms=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  const txs=getTxs().filter(t=>{
+    const d=new Date(t.date);
+    return d.getMonth()===mois&&d.getFullYear()===annee;
+  });
+
+  const totXofE=txs.filter(t=>t.type==='envoi').reduce((s,t)=>s+(t.montantXof||0),0);
+  const totMadR=txs.filter(t=>t.type==='recep').reduce((s,t)=>s+(t.montantMAD||0),0);
+  const benEnvois=txs.filter(t=>t.type==='envoi').reduce((s,t)=>s+(t.benefice||0),0);
+  const benRecep=txs.filter(t=>t.type==='recep').reduce((s,t)=>s+(t.benefice||0),0);
+  const viaAssocNb=txs.filter(t=>t.viaAssoc).length;
+  const totalBenXof=benEnvois*TAUX+benRecep;
+
+  // Générer le HTML du rapport
+  const html=`<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8">
+<title>Rapport ${moisNoms[mois]} ${annee} — TransfertPro</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:Arial,sans-serif;font-size:13px;color:#111;padding:30px;max-width:700px;margin:0 auto}
+  h1{font-size:22px;margin-bottom:4px}
+  .sub{color:#666;font-size:13px;margin-bottom:24px}
+  .section{margin-bottom:20px}
+  .section h2{font-size:14px;font-weight:700;color:#333;border-bottom:1px solid #eee;padding-bottom:6px;margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+  .stat{background:#f8f8f8;border-radius:8px;padding:12px}
+  .stat .label{font-size:11px;color:#888;margin-bottom:4px;text-transform:uppercase}
+  .stat .val{font-size:18px;font-weight:700;color:#111}
+  .stat .val.green{color:#1a9e5e}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{text-align:left;padding:7px 8px;background:#f0f0f0;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:#555}
+  td{padding:7px 8px;border-bottom:1px solid #f0f0f0}
+  tr:hover td{background:#fafafa}
+  .badge{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500}
+  .be{background:#e6f0ff;color:#2255cc}
+  .br{background:#e6f7ee;color:#1a7040}
+  .ba{background:#fff3e0;color:#b35c00}
+  .total-row{font-weight:700;background:#f0f7ff}
+  footer{margin-top:30px;text-align:center;color:#aaa;font-size:11px;border-top:1px solid #eee;padding-top:12px}
+</style></head><body>
+<h1>📊 Rapport TransfertPro</h1>
+<div class="sub">${moisNoms[mois]} ${annee} — Généré le ${new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})}</div>
+
+<div class="section">
+  <h2>Résumé du mois</h2>
+  <div class="grid">
+    <div class="stat"><div class="label">Transactions</div><div class="val">${txs.length}</div></div>
+    <div class="stat"><div class="label">Via associé</div><div class="val">${viaAssocNb}</div></div>
+    <div class="stat"><div class="label">Total envoyé</div><div class="val">${fmt(totXofE)} F</div></div>
+    <div class="stat"><div class="label">Total reçu</div><div class="val">${fmt(totMadR,2)} MAD</div></div>
+    <div class="stat"><div class="label">Bén. envois</div><div class="val green">+${fmt(benEnvois,2)} MAD</div></div>
+    <div class="stat"><div class="label">Bén. réceptions</div><div class="val green">+${fmt(benRecep)} F</div></div>
+  </div>
+  <div class="stat" style="background:#e6f7ee">
+    <div class="label">Bénéfice total estimé</div>
+    <div class="val green" style="font-size:22px">≈ ${fmt(totalBenXof)} F &nbsp;|&nbsp; ${fmt(totalBenXof/TAUX,2)} MAD</div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Détail des transactions (${txs.length})</h2>
+  <table>
+    <thead><tr>
+      <th>Date</th><th>Bénéficiaire</th><th>Type</th><th>Montant XOF</th><th>Montant MAD</th><th>Bénéfice</th>
+    </tr></thead>
+    <tbody>
+      ${txs.map(t=>{
+        const d=new Date(t.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'});
+        const type=t.type==='envoi'?`<span class="badge be">↑ ${t.destination||'Mali'}</span>`:`<span class="badge br">↓ Maroc</span>`;
+        const assoc=t.viaAssoc?` <span class="badge ba">assoc.</span>`:'';
+        const ben=t.type==='envoi'?`+${fmt(t.benefice||0,2)} MAD`:`+${fmt(t.benefice||0)} F`;
+        return `<tr>
+          <td>${d}</td>
+          <td>${t.beneficiaire||'—'}</td>
+          <td>${type}${assoc}</td>
+          <td>${fmt(t.montantXof||0)} F</td>
+          <td>${fmt(t.montantMAD||0,2)} MAD</td>
+          <td style="color:#1a9e5e;font-weight:500">${ben}</td>
+        </tr>`;
+      }).join('')}
+      <tr class="total-row">
+        <td colspan="3">TOTAL</td>
+        <td>${fmt(totXofE)} F</td>
+        <td>${fmt(totMadR,2)} MAD</td>
+        <td style="color:#1a9e5e">+${fmt(benEnvois,2)} MAD / +${fmt(benRecep)} F</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<footer>TransfertPro — Rapport confidentiel — ${moisNoms[mois]} ${annee}</footer>
+</body></html>`;
+
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`rapport_transfertpro_${moisNoms[mois].toLowerCase()}_${annee}.html`;
+  a.click();URL.revokeObjectURL(url);
+  toast('✓ Rapport téléchargé — ouvre-le dans Safari et imprime en PDF');
+}
+
+// ── SERVICE WORKER + PWA ──────────────────────────────────
+function registerSW(){
+  if(!('serviceWorker' in navigator))return;
+  const swCode=`
+const CACHE='tp-v1';
+const ASSETS=['/'];
+self.addEventListener('install',e=>{
+  e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));
+  self.skipWaiting();
+});
+self.addEventListener('activate',e=>{
+  e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));
+  self.clients.claim();
+});
+self.addEventListener('fetch',e=>{
+  e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{
+    if(res.ok){const c=res.clone();caches.open(CACHE).then(cc=>cc.put(e.request,c));}
+    return res;
+  }).catch(()=>caches.match('/'))));
+});`;
+  const blob=new Blob([swCode],{type:'application/javascript'});
+  const url=URL.createObjectURL(blob);
+  navigator.serviceWorker.register(url).catch(()=>{});
+}
+
 // Init
 applyParams();
 renderDash();
 renderObjectif();
+initRapportSelects();
 checkPin();
+registerSW();
 </script>
 </body>
 </html>
