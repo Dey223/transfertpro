@@ -509,18 +509,33 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
       </div>
 
       <!-- Rapport PDF -->
-      <div class="section-t">Rapport mensuel</div>
+      <div class="section-t">Relevé de transactions</div>
       <div class="card" style="padding:14px 16px">
         <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6">
-          Génère un rapport PDF complet du mois sélectionné.
+          Génère un relevé PDF pour une période et une catégorie de ton choix.
         </div>
-        <div style="display:flex;gap:8px;margin-bottom:10px">
-          <select id="rapport-mois" style="flex:1;padding:10px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:14px;color:var(--text);outline:none;font-family:'DM Sans',sans-serif"></select>
-          <select id="rapport-annee" style="padding:10px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:14px;color:var(--text);outline:none;font-family:'DM Sans',sans-serif"></select>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:5px;letter-spacing:.4px">DU</div>
+            <input type="date" id="rapport-debut" style="width:100%;padding:9px 8px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:13px;color:var(--text);outline:none;font-family:'DM Mono',monospace">
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:5px;letter-spacing:.4px">AU</div>
+            <input type="date" id="rapport-fin" style="width:100%;padding:9px 8px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:13px;color:var(--text);outline:none;font-family:'DM Mono',monospace">
+          </div>
         </div>
+        <div style="margin-bottom:10px">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:5px;letter-spacing:.4px">CATÉGORIE</div>
+          <div style="display:flex;gap:6px">
+            <button class="filter-btn on" id="rcat-tous" onclick="setRapportCat('tous',this)">Tout</button>
+            <button class="filter-btn" id="rcat-envoi" onclick="setRapportCat('envoi',this)">↑ Envois</button>
+            <button class="filter-btn" id="rcat-recep" onclick="setRapportCat('recep',this)">↓ Réceptions</button>
+          </div>
+        </div>
+        <div id="rapport-preview" style="margin-bottom:10px"></div>
         <button onclick="genererPDF()" class="btn" style="background:rgba(255,59,48,0.1);color:#ff3b30;border:0.5px solid rgba(255,59,48,0.25)">
-          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          Générer rapport PDF
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Télécharger le relevé (HTML→PDF)
         </button>
       </div>
 
@@ -674,7 +689,34 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 
     <!-- ══ RÉGLAGES ══ -->
     <div class="page" id="page-settings">
-      <div class="section-t" style="margin-top:14px">Paramètres de calcul</div>
+      <div class="section-t" style="margin-top:14px">Apparence</div>
+      <div class="card">
+        <div class="card-title">Thème</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
+          <button onclick="setTheme('dark')" id="theme-dark"
+            style="padding:10px 6px;border-radius:var(--rs);border:1.5px solid var(--accent);background:rgba(79,138,255,0.1);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;flex-direction:column;align-items:center;gap:4px">
+            🌙<span>Nuit</span>
+          </button>
+          <button onclick="setTheme('light')" id="theme-light"
+            style="padding:10px 6px;border-radius:var(--rs);border:0.5px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;flex-direction:column;align-items:center;gap:4px">
+            ☀️<span>Clair</span>
+          </button>
+          <button onclick="setTheme('auto')" id="theme-auto"
+            style="padding:10px 6px;border-radius:var(--rs);border:0.5px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;flex-direction:column;align-items:center;gap:4px">
+            🔄<span>Auto</span>
+          </button>
+        </div>
+        <div class="card-title">Couleur d'accent</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <div onclick="setAccent('#4f8aff')" style="width:34px;height:34px;border-radius:50%;background:#4f8aff;cursor:pointer" id="acc-blue"></div>
+          <div onclick="setAccent('#2ecc8a')" style="width:34px;height:34px;border-radius:50%;background:#2ecc8a;cursor:pointer" id="acc-green"></div>
+          <div onclick="setAccent('#f0a500')" style="width:34px;height:34px;border-radius:50%;background:#f0a500;cursor:pointer" id="acc-amber"></div>
+          <div onclick="setAccent('#a78bfa')" style="width:34px;height:34px;border-radius:50%;background:#a78bfa;cursor:pointer" id="acc-purple"></div>
+          <div onclick="setAccent('#ff4f6a')" style="width:34px;height:34px;border-radius:50%;background:#ff4f6a;cursor:pointer" id="acc-red"></div>
+        </div>
+      </div>
+
+      <div class="section-t">Paramètres de calcul</div>
       <div class="card">
         <div class="field">
           <label>Taux envoi (1 MAD = X F)</label>
@@ -1592,14 +1634,50 @@ function importerSMS(type){
   if(!p)return;
 
   if(type==='envoi_mali'){
-    // Pré-remplir le simulateur envoi Mali
+    // Le SMS contient déjà les vrais frais Sugu → on enregistre directement
+    // sans repasser par le simulateur qui recalculerait des frais différents
+    const benef=p.destinataire||'Anonyme';
+    const montant=p.montant;            // montant envoyé
+    const fraisSuguSMS=p.frais||0;     // frais réels du SMS
+    const totalXof=montant+fraisSuguSMS;
+    const pr=P();
+    const madBrut=totalXof/pr.taux;
+    const tx=pr.ret+pr.fmali;
+    const totalMAD=madBrut*(1+tx);
+    const madArrondi=Math.ceil(totalMAD/5)*5;
+    const ben=madBrut*pr.fmali+(madArrondi-totalMAD);
+
+    // Afficher dans le simulateur pour que l'utilisateur valide
     setMode('envoi');showPage('sim');
     setDest('mali');setSensEnvoi('xof');
     setTimeout(()=>{
-      S('montant-xof').value=p.montant;
-      S('benef-envoi').value=p.destinataire;
-      calculerEnvoi();
-      toast('✓ Données importées depuis SMS');
+      S('montant-xof').value=montant;
+      S('benef-envoi').value=benef;
+      // Forcer le résultat avec les vrais frais du SMS
+      const html=`<div class="rr"><span class="rl">Montant au Mali</span><span class="rv">${fmt(montant)} F</span></div>
+        <div class="rr"><span class="rl">Frais Sugu (SMS)</span><span class="rv a">+ ${fmt(fraisSuguSMS)} F</span></div>
+        <div class="rr"><span class="rl">Total ÷ ${pr.taux}</span><span class="rv">${fmt(madBrut,2)} MAD</span></div>
+        <div class="rr"><span class="rl">Retrait ${fmt(pr.ret*100,1)}%</span><span class="rv a">+ ${fmt(madBrut*pr.ret,2)} MAD</span></div>
+        <div class="rr"><span class="rl">Mes frais ${fmt(pr.fmali*100,1)}%</span><span class="rv g">+ ${fmt(madBrut*pr.fmali,2)} MAD</span></div>
+        <div class="rr"><span class="rl" style="font-weight:600;color:var(--text)">Total exact</span><span class="rv" style="color:var(--text2)">${fmt(totalMAD,2)} MAD</span></div>`;
+      S('result-envoi').innerHTML=html;
+      show('result-envoi');
+      window._dernierBrutMAD_sms=totalMAD;
+      window._dernierParsed=p;
+      S('montant-arrondi').value=madArrondi;
+      show('arrondi-section');
+      hide('ben-arrondi');
+      dernierBrut=totalMAD;
+      // Recalculer l'arrondi
+      const benBase2=madBrut*pr.fmali;
+      const gain2=madArrondi-totalMAD;
+      const tot2=benBase2+gain2;
+      S('ben-base').textContent=fmt(benBase2,2)+' MAD';
+      S('ben-gain').textContent=(gain2>=0?'+':'')+fmt(gain2,2)+' MAD';
+      S('ben-total').textContent=fmt(tot2,2)+' MAD (≈'+fmt(tot2*TAUX)+' F)';
+      show('ben-arrondi');
+      show('whatsapp-btn-envoi');
+      toast('✓ Importé depuis SMS — vérifie et enregistre');
     },200);
 
   } else if(type==='envoi_autre'){
@@ -1609,7 +1687,7 @@ function importerSMS(type){
       S('montant-xof').value=p.montant;
       S('benef-envoi').value=p.destinataire;
       calculerEnvoi();
-      toast('✓ Données importées depuis SMS');
+      toast('✓ Importé depuis SMS');
     },200);
 
   } else if(type==='depot'){
@@ -1619,10 +1697,9 @@ function importerSMS(type){
       S('recep-xof').value=p.montant;
       S('benef-recep').value=p.expediteur;
       calculerRecep();
-      toast('✓ Données importées depuis SMS');
+      toast('✓ Importé depuis SMS');
     },200);
   }
-  // Reset SMS
   S('sms-input').value='';
   S('sms-result').innerHTML='';
   window._smsParsed=null;
@@ -1708,9 +1785,12 @@ function editObjectif(){
     </div>`;
 }
 function validerObjectif(){
-  const montant=parseFloat(S('obj-input').value)||0;
+  const inp=document.getElementById('obj-input');
+  if(!inp){toast('Erreur saisie','var(--red)');return;}
+  const montant=parseFloat(inp.value)||0;
+  if(!montant||montant<=0){toast('Entre un montant valide','var(--red)');return;}
   localStorage.setItem('tp_objectif',JSON.stringify({montant,devise:'MAD'}));
-  haptic();toast('✓ Objectif enregistré');
+  haptic();toast('✓ Objectif '+fmt(montant,2)+' MAD enregistré');
   renderObjectif();
 }
 function renderObjectif(){
@@ -2200,128 +2280,203 @@ function renderGraph(){
 }
 
 // ── RAPPORT PDF ───────────────────────────────────────────
-function initRapportSelects(){
-  const moisNoms=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
-  const selM=S('rapport-mois'),selA=S('rapport-annee');
-  if(!selM||!selA)return;
-  const now=new Date();
-  moisNoms.forEach((m,i)=>{
-    const o=document.createElement('option');
-    o.value=i;o.textContent=m;
-    if(i===now.getMonth())o.selected=true;
-    selM.appendChild(o);
-  });
-  for(let y=now.getFullYear();y>=now.getFullYear()-2;y--){
-    const o=document.createElement('option');
-    o.value=y;o.textContent=y;
-    if(y===now.getFullYear())o.selected=true;
-    selA.appendChild(o);
+// ── THÈMES ────────────────────────────────────────────────
+function setTheme(t){
+  const r=document.documentElement.style;
+  const isDark=t==='dark'||(t==='auto'&&window.matchMedia('(prefers-color-scheme: dark)').matches);
+  if(isDark){
+    r.setProperty('--bg','#0a0a0f');r.setProperty('--bg2','#12121a');r.setProperty('--bg3','#1a1a25');
+    r.setProperty('--text','#f0f0f5');r.setProperty('--text2','#8888a0');r.setProperty('--text3','#555568');
+    r.setProperty('--border','rgba(255,255,255,0.07)');r.setProperty('--border2','rgba(255,255,255,0.13)');
+  } else {
+    r.setProperty('--bg','#f5f5f7');r.setProperty('--bg2','#ffffff');r.setProperty('--bg3','#f0f0f2');
+    r.setProperty('--text','#1c1c1e');r.setProperty('--text2','#555568');r.setProperty('--text3','#aaaabc');
+    r.setProperty('--border','rgba(0,0,0,0.08)');r.setProperty('--border2','rgba(0,0,0,0.12)');
   }
+  localStorage.setItem('tp_theme',t);
+  // Mettre à jour les boutons
+  ['dark','light','auto'].forEach(x=>{
+    const b=S('theme-'+x);if(!b)return;
+    const active=x===t;
+    b.style.borderWidth=active?'1.5px':'0.5px';
+    b.style.borderStyle='solid';
+    b.style.borderColor=active?'var(--accent)':'var(--border2)';
+    b.style.background=active?'rgba(79,138,255,0.1)':'transparent';
+    b.style.color=active?'var(--accent)':'var(--text2)';
+    b.style.fontWeight=active?'600':'500';
+  });
+}
+function setAccent(color){
+  document.documentElement.style.setProperty('--accent',color);
+  localStorage.setItem('tp_accent',color);
+  // Ring sur le cercle sélectionné
+  ['acc-blue','acc-green','acc-amber','acc-purple','acc-red'].forEach(id=>{
+    const el=S(id);if(el)el.style.outline='none';
+  });
+  // Trouver l'élément correspondant
+  const map={'#4f8aff':'acc-blue','#2ecc8a':'acc-green','#f0a500':'acc-amber','#a78bfa':'acc-purple','#ff4f6a':'acc-red'};
+  if(map[color]&&S(map[color]))S(map[color]).style.outline='3px solid '+color;
+  haptic();
+}
+function loadTheme(){
+  const t=localStorage.getItem('tp_theme')||'dark';
+  const a=localStorage.getItem('tp_accent');
+  setTheme(t);
+  if(a)setAccent(a);
+}
+
+// ── RELEVÉ PDF ────────────────────────────────────────────
+let rapportCat='tous';
+function setRapportCat(c,btn){
+  rapportCat=c;
+  ['rcat-tous','rcat-envoi','rcat-recep'].forEach(id=>{const el=S(id);if(el)el.classList.remove('on');});
+  btn.classList.add('on');
+  previewRapport();
+}
+function previewRapport(){
+  const debut=S('rapport-debut')?.value;
+  const fin=S('rapport-fin')?.value;
+  const el=S('rapport-preview');
+  if(!el)return;
+  if(!debut||!fin){el.innerHTML='';return;}
+  let txs=getTxs().filter(t=>{
+    const d=new Date(t.date);
+    return d>=new Date(debut)&&d<=new Date(fin+'T23:59:59');
+  });
+  if(rapportCat==='envoi') txs=txs.filter(t=>t.type==='envoi');
+  else if(rapportCat==='recep') txs=txs.filter(t=>t.type==='recep');
+  const totXof=txs.reduce((s,t)=>s+(t.montantXof||0),0);
+  const totBen=txs.filter(t=>t.type==='envoi').reduce((s,t)=>s+(t.benefice||0),0);
+  el.innerHTML=`<div style="background:var(--bg3);border-radius:var(--rs);padding:10px 12px;font-size:12px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+      <span style="color:var(--text3)">${txs.length} transaction(s)</span>
+      <span style="color:var(--accent);font-family:'DM Mono',monospace">${fmt(totXof)} F</span>
+    </div>
+    <div style="display:flex;justify-content:space-between">
+      <span style="color:var(--text3)">Bénéfice envois</span>
+      <span style="color:var(--green);font-family:'DM Mono',monospace">+${fmt(totBen,2)} MAD</span>
+    </div>
+  </div>`;
+}
+
+function initRapportSelects(){
+  // Pré-remplir avec début/fin du mois courant
+  const now=new Date();
+  const debut=new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10);
+  const fin=now.toISOString().slice(0,10);
+  if(S('rapport-debut'))S('rapport-debut').value=debut;
+  if(S('rapport-fin'))S('rapport-fin').value=fin;
+  // Écouter les changements
+  ['rapport-debut','rapport-fin'].forEach(id=>{
+    const el=S(id);if(el)el.addEventListener('input',previewRapport);
+  });
+  previewRapport();
 }
 
 function genererPDF(){
-  const mois=parseInt(S('rapport-mois').value);
-  const annee=parseInt(S('rapport-annee').value);
-  const moisNoms=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
-  const txs=getTxs().filter(t=>{
+  const debut=S('rapport-debut')?.value;
+  const fin=S('rapport-fin')?.value;
+  if(!debut||!fin){toast('Sélectionne une plage de dates','var(--amber)');return;}
+
+  let txs=getTxs().filter(t=>{
     const d=new Date(t.date);
-    return d.getMonth()===mois&&d.getFullYear()===annee;
+    return d>=new Date(debut)&&d<=new Date(fin+'T23:59:59');
   });
+  if(rapportCat==='envoi') txs=txs.filter(t=>t.type==='envoi');
+  else if(rapportCat==='recep') txs=txs.filter(t=>t.type==='recep');
+
+  if(!txs.length){toast('Aucune transaction sur cette période','var(--amber)');return;}
 
   const totXofE=txs.filter(t=>t.type==='envoi').reduce((s,t)=>s+(t.montantXof||0),0);
   const totMadR=txs.filter(t=>t.type==='recep').reduce((s,t)=>s+(t.montantMAD||0),0);
   const benEnvois=txs.filter(t=>t.type==='envoi').reduce((s,t)=>s+(t.benefice||0),0);
   const benRecep=txs.filter(t=>t.type==='recep').reduce((s,t)=>s+(t.benefice||0),0);
   const viaAssocNb=txs.filter(t=>t.viaAssoc).length;
-  const totalBenXof=benEnvois*TAUX+benRecep;
+  const catLabel=rapportCat==='envoi'?'Envois uniquement':rapportCat==='recep'?'Réceptions uniquement':'Envois + Réceptions';
 
-  // Générer le HTML du rapport
+  const fmtDate=s=>new Date(s).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
+
   const html=`<!DOCTYPE html>
 <html lang="fr"><head><meta charset="UTF-8">
-<title>Rapport ${moisNoms[mois]} ${annee} — TransfertPro</title>
+<title>Relevé TransfertPro — ${fmtDate(debut)} au ${fmtDate(fin)}</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:Arial,sans-serif;font-size:13px;color:#111;padding:30px;max-width:700px;margin:0 auto}
-  h1{font-size:22px;margin-bottom:4px}
-  .sub{color:#666;font-size:13px;margin-bottom:24px}
-  .section{margin-bottom:20px}
-  .section h2{font-size:14px;font-weight:700;color:#333;border-bottom:1px solid #eee;padding-bottom:6px;margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px}
-  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
-  .stat{background:#f8f8f8;border-radius:8px;padding:12px}
-  .stat .label{font-size:11px;color:#888;margin-bottom:4px;text-transform:uppercase}
-  .stat .val{font-size:18px;font-weight:700;color:#111}
-  .stat .val.green{color:#1a9e5e}
-  table{width:100%;border-collapse:collapse;font-size:12px}
-  th{text-align:left;padding:7px 8px;background:#f0f0f0;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:#555}
-  td{padding:7px 8px;border-bottom:1px solid #f0f0f0}
-  tr:hover td{background:#fafafa}
+  body{font-family:Arial,sans-serif;font-size:13px;color:#111;padding:30px;max-width:750px;margin:0 auto}
+  h1{font-size:20px;margin-bottom:4px;color:#111}
+  .meta{color:#666;font-size:12px;margin-bottom:20px;display:flex;gap:16px;flex-wrap:wrap}
+  .meta span{background:#f5f5f5;padding:3px 10px;border-radius:20px}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px}
+  .stat{background:#f8f9ff;border-radius:8px;padding:12px;border-left:3px solid #4f8aff}
+  .stat .label{font-size:10px;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+  .stat .val{font-size:16px;font-weight:700;color:#111}
+  .stat .val.g{color:#1a7040}
+  table{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px}
+  th{padding:8px;background:#f0f4ff;font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:#555;text-align:left}
+  td{padding:8px;border-bottom:1px solid #f0f0f0}
   .badge{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500}
   .be{background:#e6f0ff;color:#2255cc}
   .br{background:#e6f7ee;color:#1a7040}
   .ba{background:#fff3e0;color:#b35c00}
-  .total-row{font-weight:700;background:#f0f7ff}
-  footer{margin-top:30px;text-align:center;color:#aaa;font-size:11px;border-top:1px solid #eee;padding-top:12px}
+  .tot{font-weight:700;background:#f0f8f0}
+  footer{margin-top:24px;text-align:center;color:#aaa;font-size:11px;border-top:1px solid #eee;padding-top:12px}
+  @media print{body{padding:15px}}
 </style></head><body>
-<h1>📊 Rapport TransfertPro</h1>
-<div class="sub">${moisNoms[mois]} ${annee} — Généré le ${new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})}</div>
-
-<div class="section">
-  <h2>Résumé du mois</h2>
-  <div class="grid">
-    <div class="stat"><div class="label">Transactions</div><div class="val">${txs.length}</div></div>
-    <div class="stat"><div class="label">Via associé</div><div class="val">${viaAssocNb}</div></div>
-    <div class="stat"><div class="label">Total envoyé</div><div class="val">${fmt(totXofE)} F</div></div>
-    <div class="stat"><div class="label">Total reçu</div><div class="val">${fmt(totMadR,2)} MAD</div></div>
-    <div class="stat"><div class="label">Bén. envois</div><div class="val green">+${fmt(benEnvois,2)} MAD</div></div>
-    <div class="stat"><div class="label">Bén. réceptions</div><div class="val green">+${fmt(benRecep)} F</div></div>
-  </div>
-  <div class="stat" style="background:#e6f7ee">
-    <div class="label">Bénéfice total estimé</div>
-    <div class="val green" style="font-size:22px">≈ ${fmt(totalBenXof)} F &nbsp;|&nbsp; ${fmt(totalBenXof/TAUX,2)} MAD</div>
-  </div>
+<h1>📋 Relevé TransfertPro</h1>
+<div class="meta">
+  <span>📅 Du ${fmtDate(debut)} au ${fmtDate(fin)}</span>
+  <span>📂 ${catLabel}</span>
+  <span>🔢 ${txs.length} transactions</span>
+  <span>🏷️ Via associé : ${viaAssocNb}</span>
 </div>
 
-<div class="section">
-  <h2>Détail des transactions (${txs.length})</h2>
-  <table>
-    <thead><tr>
-      <th>Date</th><th>Bénéficiaire</th><th>Type</th><th>Montant XOF</th><th>Montant MAD</th><th>Bénéfice</th>
-    </tr></thead>
-    <tbody>
-      ${txs.map(t=>{
-        const d=new Date(t.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'});
-        const type=t.type==='envoi'?`<span class="badge be">↑ ${t.destination||'Mali'}</span>`:`<span class="badge br">↓ Maroc</span>`;
-        const assoc=t.viaAssoc?` <span class="badge ba">assoc.</span>`:'';
-        const ben=t.type==='envoi'?`+${fmt(t.benefice||0,2)} MAD`:`+${fmt(t.benefice||0)} F`;
-        return `<tr>
-          <td>${d}</td>
-          <td>${t.beneficiaire||'—'}</td>
-          <td>${type}${assoc}</td>
-          <td>${fmt(t.montantXof||0)} F</td>
-          <td>${fmt(t.montantMAD||0,2)} MAD</td>
-          <td style="color:#1a9e5e;font-weight:500">${ben}</td>
-        </tr>`;
-      }).join('')}
-      <tr class="total-row">
-        <td colspan="3">TOTAL</td>
-        <td>${fmt(totXofE)} F</td>
-        <td>${fmt(totMadR,2)} MAD</td>
-        <td style="color:#1a9e5e">+${fmt(benEnvois,2)} MAD / +${fmt(benRecep)} F</td>
-      </tr>
-    </tbody>
-  </table>
+<div class="grid">
+  <div class="stat"><div class="label">Total envoyé</div><div class="val">${fmt(totXofE)} F</div></div>
+  <div class="stat"><div class="label">Bén. envois</div><div class="val g">+${fmt(benEnvois,2)} MAD</div></div>
+  <div class="stat"><div class="label">Bén. réceptions</div><div class="val g">+${fmt(benRecep)} F</div></div>
+  <div class="stat"><div class="label">Total reçu</div><div class="val">${fmt(totMadR,2)} MAD</div></div>
+  <div class="stat"><div class="label">Total bénéfice estimé</div><div class="val g">≈${fmt(benEnvois*TAUX+benRecep)} F</div></div>
+  <div class="stat"><div class="label">Moy. bén./transaction</div><div class="val">${txs.length?fmt((benEnvois*TAUX+benRecep)/txs.length):0} F</div></div>
 </div>
 
-<footer>TransfertPro — Rapport confidentiel — ${moisNoms[mois]} ${annee}</footer>
+<table>
+  <thead><tr>
+    <th>Date & heure</th><th>Bénéficiaire</th><th>Type</th><th>Destination</th><th>XOF</th><th>MAD</th><th>Bénéfice</th>
+  </tr></thead>
+  <tbody>
+    ${txs.map(t=>{
+      const d=new Date(t.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'});
+      const h=new Date(t.date).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+      const type=t.type==='envoi'?`<span class="badge be">↑ Envoi</span>`:`<span class="badge br">↓ Réception</span>`;
+      const assoc=t.viaAssoc?` <span class="badge ba">assoc.</span>`:'';
+      const ben=t.type==='envoi'?`+${fmt(t.benefice||0,2)} MAD`:`+${fmt(t.benefice||0)} F`;
+      return `<tr>
+        <td>${d} ${h}</td>
+        <td>${t.beneficiaire||'—'}</td>
+        <td>${type}${assoc}</td>
+        <td>${t.destination||'—'}</td>
+        <td>${fmt(t.montantXof||0)} F</td>
+        <td>${fmt(t.montantMAD||0,2)} MAD</td>
+        <td style="color:#1a7040;font-weight:500">${ben}</td>
+      </tr>`;
+    }).join('')}
+    <tr class="tot">
+      <td colspan="4">TOTAL PÉRIODE</td>
+      <td>${fmt(totXofE)} F</td>
+      <td>${fmt(totMadR,2)} MAD</td>
+      <td style="color:#1a7040">+${fmt(benEnvois,2)} MAD / +${fmt(benRecep)} F</td>
+    </tr>
+  </tbody>
+</table>
+<footer>TransfertPro · Relevé confidentiel · Généré le ${new Date().toLocaleDateString('fr-FR')} · Pour imprimer en PDF : Fichier → Imprimer → Enregistrer en PDF</footer>
 </body></html>`;
 
   const blob=new Blob([html],{type:'text/html;charset=utf-8'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
   a.href=url;
-  a.download=`rapport_transfertpro_${moisNoms[mois].toLowerCase()}_${annee}.html`;
+  a.download=`releve_tp_${debut}_${fin}.html`;
   a.click();URL.revokeObjectURL(url);
-  toast('✓ Rapport téléchargé — ouvre-le dans Safari et imprime en PDF');
+  toast('✓ Relevé téléchargé — ouvre dans Safari et imprime en PDF');
 }
 
 // ── SERVICE WORKER + PWA ──────────────────────────────────
@@ -2351,6 +2506,7 @@ self.addEventListener('fetch',e=>{
 
 // Init
 applyParams();
+loadTheme();
 renderDash();
 renderObjectif();
 initRapportSelects();
