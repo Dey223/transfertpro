@@ -1374,7 +1374,14 @@ function exportJSON(){
   };
   const json=JSON.stringify(data,null,2);
   const nom=`backup_tp_${new Date().toISOString().slice(0,10)}.json`;
-  exportFile(json,nom,'application/json');
+  const jsonBlob=new Blob([json],{type:'application/json'});
+  const jsonUrl=URL.createObjectURL(jsonBlob);
+  const jsonA=document.createElement('a');
+  jsonA.href=jsonUrl;jsonA.download=nom;
+  document.body.appendChild(jsonA);jsonA.click();
+  document.body.removeChild(jsonA);
+  setTimeout(()=>URL.revokeObjectURL(jsonUrl),1000);
+  toast('✓ Sauvegarde exportée');
 }
 
 function importJSON(){
@@ -2404,7 +2411,15 @@ function exportCSV(){
     ].join(',');
   });
   const csv=[header,...rows].join('\n');
-  exportFile(csv,'transfertpro_'+new Date().toISOString().slice(0,10)+'.csv','text/csv');
+  const csvBlob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  const csvUrl=URL.createObjectURL(csvBlob);
+  const csvA=document.createElement('a');
+  csvA.href=csvUrl;
+  csvA.download='transfertpro_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(csvA);csvA.click();
+  document.body.removeChild(csvA);
+  setTimeout(()=>URL.revokeObjectURL(csvUrl),1000);
+  toast('✓ Export CSV téléchargé');
 }
 
 // ── GRAPHIQUE ÉVOLUTION ───────────────────────────────────
@@ -2711,7 +2726,22 @@ function genererPDF(){
 <footer>TransfertPro · Relevé confidentiel · Généré le ${new Date().toLocaleDateString('fr-FR')} · Pour imprimer en PDF : Fichier → Imprimer → Enregistrer en PDF</footer>
 </body></html>`;
 
-  exportFile(html,`releve_tp_${debut}_${fin}.html`,'text/html');
+  // Afficher le rapport dans une modale in-app (compatible PWA iOS)
+  const modal=document.createElement('div');
+  modal.style.cssText='position:fixed;inset:0;z-index:9999;background:#fff;display:flex;flex-direction:column';
+  modal.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:#f5f5f7;border-bottom:1px solid #ddd;flex-shrink:0">
+      <button onclick="this.closest('[style*=fixed]').remove()" style="border:none;background:#e0e0e5;color:#333;padding:7px 14px;border-radius:20px;font-size:14px;cursor:pointer;font-family:sans-serif">✕ Fermer</button>
+      <span style="font-size:14px;font-weight:600;color:#111">Relevé TransfertPro</span>
+      <button onclick="window.print()" style="border:none;background:#007aff;color:#fff;padding:7px 14px;border-radius:20px;font-size:14px;cursor:pointer;font-family:sans-serif">🖨️ Imprimer</button>
+    </div>
+    <iframe id="releve-frame" style="flex:1;border:none;width:100%;height:100%"></iframe>`;
+  document.body.appendChild(modal);
+  const iframe=modal.querySelector('#releve-frame');
+  iframe.onload=()=>{};
+  const doc=iframe.contentDocument||iframe.contentWindow.document;
+  doc.open();doc.write(html);doc.close();
+  toast('✓ Relevé prêt — appuie sur Imprimer pour PDF');
 }
 
 // ── SERVICE WORKER + PWA ──────────────────────────────────
