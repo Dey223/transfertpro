@@ -1163,6 +1163,33 @@ function validerRecep(){
   setTimeout(()=>showPage('hist'),300);
 }
 
+
+// ── DÉTECTION PWA ─────────────────────────────────────────
+function isPWA(){
+  return window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches;
+}
+// Export universel : télécharge en Safari, ouvre nouvel onglet en PWA
+function exportFile(content, filename, mimeType){
+  if(isPWA()||/iPhone|iPad/.test(navigator.userAgent)){
+    // En PWA/iOS : ouvrir dans un nouvel onglet pour que l'utilisateur puisse Partager → Imprimer
+    const w=window.open('','_blank');
+    if(w){
+      if(mimeType.includes('html')){
+        w.document.write(content);w.document.close();
+      } else {
+        w.document.write('<pre style="white-space:pre-wrap;word-break:break-all;font-size:12px">'+content+'</pre>');
+        w.document.close();
+      }
+      toast('✓ Ouvert dans Safari — Partager → Imprimer pour PDF');
+    }
+  } else {
+    // Sur desktop/Android : téléchargement direct
+    const enc='data:'+mimeType+';charset=utf-8,'+encodeURIComponent(content);
+    const a=document.createElement('a');a.href=enc;a.download=filename;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    toast('✓ Fichier téléchargé');
+  }
+}
 // ── STOCKAGE ──────────────────────────────────────────────
 function save(tx){const t=getTxs();t.unshift(tx);localStorage.setItem('tp_txs',JSON.stringify(t));renderDash();}
 function getTxs(){try{return JSON.parse(localStorage.getItem('tp_txs'))||[];}catch{return[];}}
@@ -1347,12 +1374,7 @@ function exportJSON(){
   };
   const json=JSON.stringify(data,null,2);
   const nom=`backup_tp_${new Date().toISOString().slice(0,10)}.json`;
-  try{
-    const enc='data:application/json;charset=utf-8,'+encodeURIComponent(json);
-    const a=document.createElement('a');a.href=enc;a.download=nom;
-    document.body.appendChild(a);a.click();document.body.removeChild(a);
-    toast('✓ Sauvegarde exportée');
-  }catch(e){toast('Erreur export','var(--red)');}
+  exportFile(json,nom,'application/json');
 }
 
 function importJSON(){
@@ -2382,17 +2404,7 @@ function exportCSV(){
     ].join(',');
   });
   const csv=[header,...rows].join('\n');
-  try{
-    const encoded='data:text/csv;charset=utf-8,'+encodeURIComponent('\ufeff'+csv);
-    const a=document.createElement('a');
-    a.href=encoded;
-    a.download='transfertpro_'+new Date().toISOString().slice(0,10)+'.csv';
-    document.body.appendChild(a);a.click();document.body.removeChild(a);
-  }catch(e){
-    const w=window.open('','_blank');
-    if(w){w.document.write('<pre>'+csv+'</pre>');w.document.close();}
-  }
-  toast('✓ Export CSV généré');
+  exportFile(csv,'transfertpro_'+new Date().toISOString().slice(0,10)+'.csv','text/csv');
 }
 
 // ── GRAPHIQUE ÉVOLUTION ───────────────────────────────────
@@ -2699,19 +2711,7 @@ function genererPDF(){
 <footer>TransfertPro · Relevé confidentiel · Généré le ${new Date().toLocaleDateString('fr-FR')} · Pour imprimer en PDF : Fichier → Imprimer → Enregistrer en PDF</footer>
 </body></html>`;
 
-  try{
-    // data URI compatible PWA Safari
-    const encoded='data:text/html;charset=utf-8,'+encodeURIComponent(html);
-    const a=document.createElement('a');
-    a.href=encoded;
-    a.download=`releve_tp_${debut}_${fin}.html`;
-    document.body.appendChild(a);a.click();document.body.removeChild(a);
-  }catch(e){
-    // Fallback : ouvrir dans un nouvel onglet
-    const w=window.open('','_blank');
-    if(w){w.document.write(html);w.document.close();}
-  }
-  toast('✓ Relevé généré — imprime en PDF depuis Safari');
+  exportFile(html,`releve_tp_${debut}_${fin}.html`,'text/html');
 }
 
 // ── SERVICE WORKER + PWA ──────────────────────────────────
