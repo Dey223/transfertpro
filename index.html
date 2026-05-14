@@ -181,10 +181,12 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 
 <style id="print-style">
 @media print {
-  body > *:not(#releve-modal) { display: none !important; visibility: hidden !important; }
-  #releve-modal { display: flex !important; position: fixed !important; inset: 0 !important; z-index: 99999 !important; background: #fff !important; }
+  html, body { background: white !important; }
+  body > * { display: none !important; }
+  body > #releve-modal { display: block !important; position: absolute !important; inset: 0 !important; }
   #releve-modal > div:first-child { display: none !important; }
-  #releve-modal > div:last-child { overflow: visible !important; }
+  #releve-modal > div:last-child { overflow: visible !important; max-height: none !important; height: auto !important; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 }
 </style>
 </head>
@@ -562,6 +564,13 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
             <button class="filter-btn" id="rcat-envoi" onclick="setRapportCat('envoi',this)">↑ Envois</button>
             <button class="filter-btn" id="rcat-recep" onclick="setRapportCat('recep',this)">↓ Réceptions</button>
           </div>
+        </div>
+        <!-- Option masquer bénéfices -->
+        <div style="display:flex;align-items:center;gap:8px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);padding:10px 12px;margin-bottom:10px;cursor:pointer" onclick="toggleMasquerBenef()">
+          <div class="chk-box" id="chk-masquer-box">
+            <svg id="chk-masquer-ico" viewBox="0 0 24 24" style="display:none;width:11px;height:11px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <span style="font-size:12px;color:var(--text2)">Version <span style="color:var(--amber)">agent</span> <span style="color:var(--text3);font-size:11px">(masquer les bénéfices)</span></span>
         </div>
         <div id="rapport-preview" style="margin-bottom:10px"></div>
         <button onclick="genererPDF()" class="btn" style="background:rgba(255,59,48,0.1);color:#ff3b30;border:0.5px solid rgba(255,59,48,0.25)">
@@ -2596,7 +2605,16 @@ function loadTheme(){
 }
 
 // ── RELEVÉ PDF ────────────────────────────────────────────
+// ── RELEVÉ AGENT ─────────────────────────────────────────
 let rapportCat='tous';
+let masquerBenef=false;
+function toggleMasquerBenef(){
+  masquerBenef=!masquerBenef;
+  const box=S('chk-masquer-box'),ico=S('chk-masquer-ico');
+  box.style.background=masquerBenef?'var(--amber)':'transparent';
+  box.style.borderColor=masquerBenef?'var(--amber)':'var(--border2)';
+  ico.style.display=masquerBenef?'block':'none';
+}
 function setRapportCat(c,btn){
   rapportCat=c;
   ['rcat-tous','rcat-envoi','rcat-recep'].forEach(id=>{const el=S(id);if(el)el.classList.remove('on');});
@@ -2665,105 +2683,143 @@ function genererPDF(){
   const benRecep=txs.filter(t=>t.type==='recep').reduce((s,t)=>s+(t.benefice||0),0);
   const viaAssocNb=txs.filter(t=>t.viaAssoc).length;
   const catLabel=rapportCat==='envoi'?'Envois uniquement':rapportCat==='recep'?'Réceptions uniquement':'Envois + Réceptions';
-
   const fmtDate=s=>new Date(s).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
 
+  // Version agent : sans bénéfices, avec case à cocher de confirmation
+  const agentMark=isAgent?'<th style="width:60px">Confirmé</th>':'';
   const html=`<!DOCTYPE html>
 <html lang="fr"><head><meta charset="UTF-8">
-<title>Relevé TransfertPro — ${fmtDate(debut)} au ${fmtDate(fin)}</title>
+<title>${isAgent?'Relevé Agent':'Relevé TransfertPro'} — ${fmtDate(debut)} au ${fmtDate(fin)}</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:Arial,sans-serif;font-size:13px;color:#111;padding:30px;max-width:750px;margin:0 auto}
-  h1{font-size:20px;margin-bottom:4px;color:#111}
-  .meta{color:#666;font-size:12px;margin-bottom:20px;display:flex;gap:16px;flex-wrap:wrap}
-  .meta span{background:#f5f5f5;padding:3px 10px;border-radius:20px}
-  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px}
-  .stat{background:#f8f9ff;border-radius:8px;padding:12px;border-left:3px solid #4f8aff}
-  .stat .label{font-size:10px;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
-  .stat .val{font-size:16px;font-weight:700;color:#111}
+  body{font-family:Arial,sans-serif;font-size:12px;color:#111;padding:16px;max-width:750px;margin:0 auto}
+  h1{font-size:18px;margin-bottom:6px;color:#111}
+  .meta{color:#666;font-size:11px;margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap}
+  .meta span{background:#f5f5f5;padding:2px 8px;border-radius:20px}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:16px}
+  .stat{background:#f8f9ff;border-radius:6px;padding:10px;border-left:3px solid #4f8aff}
+  .stat .label{font-size:9px;color:#888;margin-bottom:3px;text-transform:uppercase;letter-spacing:.4px}
+  .stat .val{font-size:14px;font-weight:700;color:#111}
   .stat .val.g{color:#1a7040}
-  table{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px}
-  th{padding:8px;background:#f0f4ff;font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:#555;text-align:left}
-  td{padding:8px;border-bottom:1px solid #f0f0f0}
-  .badge{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500}
+  table{width:100%;border-collapse:collapse;font-size:11px;margin-top:4px}
+  th{padding:6px 4px;background:#f0f4ff;font-size:9px;text-transform:uppercase;color:#555;text-align:left;border-bottom:2px solid #dde}
+  td{padding:6px 4px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
+  .badge{font-size:9px;padding:2px 6px;border-radius:8px;font-weight:500;white-space:nowrap}
   .be{background:#e6f0ff;color:#2255cc}
   .br{background:#e6f7ee;color:#1a7040}
   .ba{background:#fff3e0;color:#b35c00}
   .tot{font-weight:700;background:#f0f8f0}
-  footer{margin-top:24px;text-align:center;color:#aaa;font-size:11px;border-top:1px solid #eee;padding-top:12px}
-  @media print{body{padding:15px}}
+  .chk{width:16px;height:16px;border:1.5px solid #aaa;border-radius:3px;display:inline-block}
+  footer{margin-top:20px;text-align:center;color:#aaa;font-size:10px;border-top:1px solid #eee;padding-top:10px}
+  .agent-note{background:#fffbe6;border:1px solid #ffe58f;border-radius:6px;padding:10px;margin-bottom:14px;font-size:11px;color:#7d6608}
+  @media print{@page{margin:1cm} .agent-note{display:block}}
 </style></head><body>
-<h1>📋 Relevé TransfertPro</h1>
+<h1>${isAgent?'📋 Récapitulatif Agent':'📋 Relevé TransfertPro'}</h1>
 <div class="meta">
   <span>📅 Du ${fmtDate(debut)} au ${fmtDate(fin)}</span>
   <span>📂 ${catLabel}</span>
   <span>🔢 ${txs.length} transactions</span>
-  <span>🏷️ Via associé : ${viaAssocNb}</span>
 </div>
 
+${isAgent?`<div class="agent-note">
+  ⚠️ Document confidentiel — Merci de confirmer chaque montant reçu et déposé en cochant la case correspondante. 
+  Toute incohérence doit être signalée immédiatement.
+</div>`:''}
+
 <div class="grid">
-  <div class="stat"><div class="label">Total envoyé</div><div class="val">${fmt(totXofE)} F</div></div>
+  <div class="stat"><div class="label">Total transactions</div><div class="val">${txs.length}</div></div>
+  <div class="stat"><div class="label">Total envoyé (XOF)</div><div class="val">${fmt(totXofAll)} F</div></div>
+  <div class="stat"><div class="label">Total MAD traité</div><div class="val">${fmt(totMadAll,2)} MAD</div></div>
+  ${!isAgent?`
   <div class="stat"><div class="label">Bén. envois</div><div class="val g">+${fmt(benEnvois,2)} MAD</div></div>
   <div class="stat"><div class="label">Bén. réceptions</div><div class="val g">+${fmt(benRecep)} F</div></div>
-  <div class="stat"><div class="label">Total reçu</div><div class="val">${fmt(totMadR,2)} MAD</div></div>
-  <div class="stat"><div class="label">Total bénéfice estimé</div><div class="val g">≈${fmt(benEnvois*TAUX+benRecep)} F</div></div>
-  <div class="stat"><div class="label">Moy. bén./transaction</div><div class="val">${txs.length?fmt((benEnvois*TAUX+benRecep)/txs.length):0} F</div></div>
+  <div class="stat"><div class="label">Total bénéfice estimé</div><div class="val g">≈${fmt(benEnvois*TAUX+benRecep)} F</div></div>`:''}
 </div>
 
 <table>
   <thead><tr>
-    <th>Date & heure</th><th>Bénéficiaire</th><th>Type</th><th>Destination</th><th>XOF</th><th>MAD</th><th>Bénéfice</th>
+    <th style="width:70px">Date & heure</th>
+    <th>Bénéficiaire</th>
+    <th style="width:70px">Type</th>
+    <th>Destination</th>
+    <th style="width:70px">XOF</th>
+    <th style="width:70px">MAD</th>
+    ${!isAgent?'<th style="width:80px">Bénéfice</th>':''}
+    ${agentMark}
   </tr></thead>
   <tbody>
     ${txs.map(t=>{
       const d=new Date(t.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'});
       const h=new Date(t.date).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-      const type=t.type==='envoi'?`<span class="badge be">↑ Envoi</span>`:`<span class="badge br">↓ Réception</span>`;
-      const assoc=t.viaAssoc?` <span class="badge ba">assoc.</span>`:'';
-      const ben=t.type==='envoi'?`+${fmt(t.benefice||0,2)} MAD`:`+${fmt(t.benefice||0)} F`;
-      return `<tr>
-        <td>${d} ${h}</td>
-        <td>${t.beneficiaire||'—'}</td>
-        <td>${type}${assoc}</td>
-        <td>${t.destination||'—'}</td>
-        <td>${fmt(t.montantXof||0)} F</td>
-        <td>${fmt(t.montantMAD||0,2)} MAD</td>
-        <td style="color:#1a7040;font-weight:500">${ben}</td>
-      </tr>`;
+      const type=t.type==='envoi'?'<span class="badge be">↑ Envoi</span>':'<span class="badge br">↓ Réception</span>';
+      const assoc=t.viaAssoc?' <span class="badge ba">assoc.</span>':'';
+      const ben=t.type==='envoi'?'+'+fmt(t.benefice||0,2)+' MAD':'+'+fmt(t.benefice||0)+' F';
+      return '<tr>'
+        +'<td>'+d+' '+h+'</td>'
+        +'<td>'+(t.beneficiaire||'—')+'</td>'
+        +'<td>'+type+assoc+'</td>'
+        +'<td>'+(t.destination||'—')+'</td>'
+        +'<td>'+fmt(t.montantXof||0)+' F</td>'
+        +'<td>'+fmt(t.montantMAD||0,2)+' MAD</td>'
+        +(!isAgent?'<td style="color:#1a7040;font-weight:500">'+ben+'</td>':'')
+        +(isAgent?'<td><span class="chk"></span></td>':'')
+        +'</tr>';
     }).join('')}
     <tr class="tot">
-      <td colspan="4">TOTAL PÉRIODE</td>
-      <td>${fmt(totXofE)} F</td>
-      <td>${fmt(totMadR,2)} MAD</td>
-      <td style="color:#1a7040">+${fmt(benEnvois,2)} MAD / +${fmt(benRecep)} F</td>
+      <td colspan="3">TOTAL PÉRIODE</td>
+      <td></td>
+      <td>${fmt(totXofAll)} F</td>
+      <td>${fmt(totMadAll,2)} MAD</td>
+      ${!isAgent?'<td style="color:#1a7040">+'+fmt(benEnvois,2)+' MAD / +'+fmt(benRecep)+' F</td>':''}
+      ${isAgent?'<td></td>':''}
     </tr>
   </tbody>
 </table>
-<footer>TransfertPro · Relevé confidentiel · Généré le ${new Date().toLocaleDateString('fr-FR')} · Pour imprimer en PDF : Fichier → Imprimer → Enregistrer en PDF</footer>
+${isAgent?`<div style="margin-top:24px;padding:12px;border:1px solid #ddd;border-radius:6px">
+  <div style="font-size:11px;font-weight:600;margin-bottom:12px">SIGNATURE ET CONFIRMATION AGENT</div>
+  <div style="display:flex;justify-content:space-between;margin-top:30px">
+    <div style="text-align:center;flex:1"><div style="border-top:1px solid #333;width:120px;margin:0 auto;padding-top:4px;font-size:10px;color:#888">Date</div></div>
+    <div style="text-align:center;flex:1"><div style="border-top:1px solid #333;width:120px;margin:0 auto;padding-top:4px;font-size:10px;color:#888">Signature agent</div></div>
+  </div>
+</div>`:''}
+<footer>TransfertPro · ${isAgent?'Document agent confidentiel':'Relevé confidentiel'} · Généré le ${new Date().toLocaleDateString('fr-FR')}</footer>
 </body></html>`;
 
-  // Modale plein écran propre pour impression
+  // Modale plein écran — impression via iframe isolé
   const existing=document.getElementById('releve-modal');
   if(existing)existing.remove();
   const modal=document.createElement('div');
   modal.id='releve-modal';
-  modal.style.cssText='position:fixed;inset:0;z-index:9999;background:#fff;display:flex;flex-direction:column';
+  modal.style.cssText='position:fixed;inset:0;z-index:9999;background:#fff;display:flex;flex-direction:column;font-family:Arial,sans-serif';
+
   const toolbar=document.createElement('div');
-  toolbar.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:#f5f5f7;border-bottom:1px solid #ddd;flex-shrink:0;gap:10px';
+  toolbar.id='releve-toolbar';
+  toolbar.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#f5f5f7;border-bottom:1px solid #ddd;flex-shrink:0;gap:8px;-webkit-print-color-adjust:exact';
   toolbar.innerHTML=`
-    <button onclick="document.getElementById('releve-modal').remove()" style="border:none;background:#e0e0e5;color:#333;padding:8px 16px;border-radius:20px;font-size:14px;cursor:pointer;font-family:sans-serif;font-weight:500">✕ Fermer</button>
-    <span style="font-size:13px;font-weight:600;color:#111;flex:1;text-align:center">Relevé TransfertPro</span>
-    <button onclick="document.getElementById('releve-iframe').contentWindow.print()" style="border:none;background:#007aff;color:#fff;padding:8px 16px;border-radius:20px;font-size:14px;cursor:pointer;font-family:sans-serif;font-weight:500">🖨️ Imprimer</button>`;
+    <button onclick="document.getElementById('releve-modal').remove()" style="border:none;background:#e0e0e5;color:#333;padding:7px 14px;border-radius:20px;font-size:14px;cursor:pointer;font-family:Arial,sans-serif;font-weight:500">✕ Fermer</button>
+    <span style="font-size:13px;font-weight:600;color:#111;flex:1;text-align:center">${isAgent?'Relevé Agent':'Relevé TransfertPro'}</span>
+    <button id="btn-print-pdf" style="border:none;background:#007aff;color:#fff;padding:7px 14px;border-radius:20px;font-size:14px;cursor:pointer;font-family:Arial,sans-serif;font-weight:500">🖨️ PDF</button>`;
+
   const iframe=document.createElement('iframe');
   iframe.id='releve-iframe';
-  iframe.style.cssText='flex:1;border:none;width:100%;height:100%';
+  iframe.style.cssText='flex:1;border:none;width:100%;height:100%;background:#fff';
   modal.appendChild(toolbar);
   modal.appendChild(iframe);
   document.body.appendChild(modal);
-  // Écrire le HTML dans l'iframe
+
   const doc=iframe.contentDocument||iframe.contentWindow.document;
   doc.open();doc.write(html);doc.close();
-  toast('✓ Relevé prêt — appuie sur Imprimer pour PDF');
+
+  // Impression : cacher la toolbar, imprimer dans l'iframe, restaurer
+  document.getElementById('btn-print-pdf').onclick=()=>{
+    toolbar.style.visibility='hidden';
+    setTimeout(()=>{
+      iframe.contentWindow.print();
+      setTimeout(()=>{toolbar.style.visibility='visible';},800);
+    },100);
+  };
+
+  toast('✓ Relevé prêt — appuie sur PDF');
 }
 
 // ── SERVICE WORKER + PWA ──────────────────────────────────
