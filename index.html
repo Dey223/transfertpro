@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="TransfertPro">
+<meta name="apple-mobile-web-app-title" content="SpeedCash">
 <meta name="theme-color" content="#0a0a0f">
-<title>TransfertPro</title>
+<title>SpeedCash</title>
 <script>
 // Manifest PWA inline
 const manifest={
-  name:'TransfertPro',short_name:'TransfertPro',
+  name:'SpeedCash',short_name:'SpeedCash',
   description:'Gestion de transfert d\'argent Mali-Maroc',
   start_url:'/',display:'standalone',
   background_color:'#0a0a0f',theme_color:'#0a0a0f',
@@ -200,7 +200,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
   <div class="topbar">
     <div class="logo">
       <div class="logo-icon">💸</div>
-      TransfertPro
+      SpeedCash
     </div>
     <div style="text-align:right">
       <div style="font-size:10px;color:var(--text3);letter-spacing:.5px">VERSION</div>
@@ -292,12 +292,20 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
             </div>
           </div>
 
-          <!-- Marqueur associé -->
-          <div id="assoc-row" class="chk-row" style="margin-top:10px" onclick="toggleAssoc()">
-            <div class="chk-box" id="chk-assoc-box">
-              <svg id="chk-assoc-ico" viewBox="0 0 24 24" style="display:none;width:11px;height:11px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"><polyline points="20 6 9 17 4 12"/></svg>
+          <!-- Marqueurs alignés -->
+          <div style="display:flex;gap:10px;margin-top:10px">
+            <div id="assoc-row" class="chk-row" style="flex:1" onclick="toggleAssoc()">
+              <div class="chk-box" id="chk-assoc-box">
+                <svg id="chk-assoc-ico" viewBox="0 0 24 24" style="display:none;width:11px;height:11px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <span style="font-size:12px;color:var(--text2)">Via <span style="color:var(--amber)">associé</span></span>
             </div>
-            <span style="font-size:12px;color:var(--text2)">Via <span style="color:var(--amber)">associé</span> <span style="color:var(--text3);font-size:11px">(pas mes liquidités → pas de marge taux)</span></span>
+            <div id="agent-row-envoi" class="chk-row" style="flex:1;border-color:var(--accent)" onclick="toggleAgentEnvoi()">
+              <div class="chk-box" id="chk-agente-box" style="background:var(--accent);border-color:var(--accent)">
+                <svg id="chk-agente-ico" viewBox="0 0 24 24" style="display:block;width:11px;height:11px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <span style="font-size:12px;color:var(--text2)">Par <span style="color:var(--accent)">l'agent</span></span>
+            </div>
           </div>
 
           <!-- Bouton WhatsApp -->
@@ -382,6 +390,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
               Copier message client WhatsApp
             </button>
           </div>
+
           <button class="btn btn-primary" onclick="validerRecep()">
             <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Enregistrer
           </button>
@@ -661,15 +670,6 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
       </div>
       <div id="agent-list" class="card" style="padding:0 16px"></div>
 
-      <!-- 1. COMPTEUR MAD INVISIBLE (marge taux accumulée) -->
-      <div class="section-t">Marge taux accumulée (MAD "invisibles")</div>
-      <div class="card" id="marge-taux-card">
-        <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6">
-          Chaque réception te rapporte un écart entre le taux entrant (61/61,5) et le taux sortant (60). Voici combien tu as accumulé en MAD supplémentaires sur toutes tes transactions.
-        </div>
-        <div id="marge-taux-result"></div>
-      </div>
-
       <!-- 2. BROUILLON BÉNÉFICES (cumul automatique) -->
       <div class="section-t" style="display:flex;justify-content:space-between;align-items:center">
         <span>Brouillon bénéfices (MAD)</span>
@@ -729,10 +729,54 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 
     <!-- ══ ANALYSES ══ -->
     <div class="page" id="page-analyse">
-      <div class="section-t" style="margin-top:14px">Analyses prédictives</div>
+      <!-- Réconciliation agent -->
+      <div class="section-t" style="margin-top:14px">Réconciliation agent</div>
+      <div class="card" style="padding:14px 16px">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6">
+          Compare ce que l'agent devrait avoir avec ce qu'il déclare.
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+          <button class="filter-btn on" id="rc-jour" onclick="setReconPeriod('jour',this)">Aujourd'hui</button>
+          <button class="filter-btn" id="rc-hier" onclick="setReconPeriod('hier',this)">Hier</button>
+          <button class="filter-btn" id="rc-semaine" onclick="setReconPeriod('semaine',this)">Semaine</button>
+          <button class="filter-btn" id="rc-libre" onclick="setReconPeriod('libre',this)">Plage libre</button>
+        </div>
+        <div id="ragent-dates" style="display:none;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;min-width:0">
+          <div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:4px;letter-spacing:.4px">DU</div>
+            <input type="date" id="ragent-debut" style="width:100%;padding:8px 6px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:12px;color:var(--text);outline:none;font-family:'DM Mono',monospace;min-width:0" oninput="renderRecon()">
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:4px;letter-spacing:.4px">AU</div>
+            <input type="date" id="ragent-fin" style="width:100%;padding:8px 6px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:12px;color:var(--text);outline:none;font-family:'DM Mono',monospace;min-width:0" oninput="renderRecon()">
+          </div>
+        </div>
+        <div id="ragent-result"></div>
+        <div style="margin-top:12px;padding-top:12px;border-top:0.5px solid var(--border)">
+          <div style="font-size:11px;color:var(--text2);margin-bottom:8px;font-weight:500;letter-spacing:.3px">L'AGENT DÉCLARE</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="number" id="ragent-declare" inputmode="decimal" placeholder="Montant MAD"
+              style="flex:1;padding:11px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:16px;font-family:'DM Mono',monospace;color:var(--text);outline:none;-webkit-appearance:none"
+              oninput="renderReconEcart()">
+            <span style="font-size:13px;color:var(--text2)">MAD</span>
+          </div>
+          <div id="ragent-ecart" style="margin-top:8px"></div>
+        </div>
+      </div>
+
+      <!-- Marge taux -->
+      <div class="section-t">Marge taux accumulée</div>
+      <div class="card" id="marge-taux-card">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6">
+          Écart entre le taux entrant (61/61,5) et le taux sortant (60) sur chaque réception.
+        </div>
+        <div id="marge-taux-result"></div>
+      </div>
+
+      <!-- Analyses prédictives -->
+      <div class="section-t">Analyses prédictives</div>
       <div id="analyse-container">
         <div style="text-align:center;padding:40px 20px;color:var(--text3);font-size:13px">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="display:block;margin:0 auto 10px;opacity:.35;stroke-linecap:round;stroke-linejoin:round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
           Chargement des analyses...
         </div>
       </div>
@@ -1069,18 +1113,18 @@ function validerEnvoi(){
     const mad=parseFloat(S('montant-emad').value);
     if(!mad||mad<=0){toast('Montant invalide','var(--red)');return;}
     const pv=P();
-    let xofNet2,bénéfice2;
+    let xofNet2,benefice2;
     if(dest==='mali'){
       const madNet=mad*(1-pv.fmali),xofBrut=madNet*pv.taux,fs=sugu(xofBrut);
-      xofNet2=xofBrut-fs;bénéfice2=mad*pv.fmali;
+      xofNet2=xofBrut-fs;benefice2=mad*pv.fmali;
     } else {
       xofNet2=mad*(1-pv.fautre)*pv.taux;
-      bénéfice2=mad*pv.fmali;
+      benefice2=mad*pv.fmali;
     }
     save({id:Date.now(),date:new Date().toISOString(),beneficiaire:benef,type:'envoi',
       destination:dest==='mali'?'🇲🇱 Mali':paysLabel,
       montantXof:xofNet2,montantMAD:mad,fondSoutien:false,
-      gainArrondi:0,viaAssoc:false,bénéfice:bénéfice2,devise:'MAD'});
+      gainArrondi:0,viaAssoc:false,gereParAgent,benefice:benefice2,devise:'MAD'});
     S('montant-emad').value='';hide('result-emad');
   } else {
     const xof=parseFloat(S('montant-xof').value),arr=parseFloat(S('montant-arrondi').value);
@@ -1092,10 +1136,15 @@ function validerEnvoi(){
     save({id:Date.now(),date:new Date().toISOString(),beneficiaire:benef,type:'envoi',
       destination:dest==='mali'?'🇲🇱 Mali':paysLabel,
       montantXof:xof,montantMAD:arr,fondSoutien:fondActif&&dest==='mali',
-      gainArrondi,viaAssoc,bénéfice:ben,devise:'MAD'});
+      gainArrondi,viaAssoc,gereParAgent,benefice:ben,devise:'MAD'});
     S('montant-xof').value='';S('montant-arrondi').value='';
     hide('result-envoi');hide('arrondi-section');hide('whatsapp-btn-envoi');
-    dernierBrut=0;viaAssoc=false;
+    dernierBrut=0;viaAssoc=false;gereParAgent=true;
+    // Reset marqueurs UI
+    S('chk-agente-box').style.background='var(--accent)';
+    S('chk-agente-box').style.borderColor='var(--accent)';
+    S('chk-agente-ico').style.display='block';
+    S('agent-row-envoi').style.borderColor='var(--accent)';
     // Reset marqueur associé UI
     S('chk-assoc-box').style.background='transparent';
     S('chk-assoc-box').style.borderColor='var(--border2)';
@@ -1146,7 +1195,7 @@ function calculerRecep(){
     S('result-recep').innerHTML=`
       <div class="rr"><span class="rl">MAD à remettre</span><span class="rv">${fmt(mad,2)} MAD</span></div>
       <div class="rr"><span class="rl">× ${tauxR}</span><span class="rv">${fmt(xofBase)} F</span></div>
-      <div class="rr"><span class="rl">+ Mes frais 4%</span><span class="rv g">+ ${fmt(xofBase*F_RECEP)} F</span></div>
+      <div class="rr"><span class="rl">+ Mes frais 3%</span><span class="rv g">+ ${fmt(xofBase*F_RECEP)} F</span></div>
       <div class="rr"><span class="rl" style="font-weight:600;color:var(--text)">Dépôt exact</span><span class="rv" style="color:var(--text2)">${fmt(xofBrut)} F</span></div>`;
     show('result-recep');
     S('arr-xof').value=a50(xofBrut);show('aw-rmad');hide('ben-rmad');calculerArrondiRecep();
@@ -1194,11 +1243,13 @@ function validerRecep(){
     mXof=xofA;ben=xofA-(mMAD*TAUX);
   }
   save({id:Date.now(),date:new Date().toISOString(),beneficiaire:benef,type:'recep',
-    destination:'🇲🇦 Maroc',montantXof:mXof,montantMAD:mMAD,taux:tauxR,bénéfice:ben,devise:'XOF'});
+    destination:'🇲🇦 Maroc',montantXof:mXof,montantMAD:mMAD,taux:tauxR,
+    gereParAgent,benefice:ben,devise:'XOF'});
   saveContact(benef);
   S('recep-xof').value='';S('recep-mad').value='';
   S('arr-mad').value='';S('arr-xof').value='';S('benef-recep').value='';
   hide('result-recep');hide('aw-rxof');hide('aw-rmad');
+
   DR={madBrut:0,xofDepot:0,xofBrut:0,madVoulu:0};
   blurAll();haptic();toast('✓ Transaction enregistrée');
   setTimeout(()=>showPage('hist'),300);
@@ -1210,27 +1261,7 @@ function isPWA(){
   return window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches;
 }
 // Export universel : télécharge en Safari, ouvre nouvel onglet en PWA
-function exportFile(content, filename, mimeType){
-  if(isPWA()||/iPhone|iPad/.test(navigator.userAgent)){
-    // En PWA/iOS : ouvrir dans un nouvel onglet pour que l'utilisateur puisse Partager → Imprimer
-    const w=window.open('','_blank');
-    if(w){
-      if(mimeType.includes('html')){
-        w.document.write(content);w.document.close();
-      } else {
-        w.document.write('<pre style="white-space:pre-wrap;word-break:break-all;font-size:12px">'+content+'</pre>');
-        w.document.close();
-      }
-      toast('✓ Ouvert dans Safari — Partager → Imprimer pour PDF');
-    }
-  } else {
-    // Sur desktop/Android : téléchargement direct
-    const enc='data:'+mimeType+';charset=utf-8,'+encodeURIComponent(content);
-    const a=document.createElement('a');a.href=enc;a.download=filename;
-    document.body.appendChild(a);a.click();document.body.removeChild(a);
-    toast('✓ Fichier téléchargé');
-  }
-}
+
 // ── STOCKAGE ──────────────────────────────────────────────
 function save(tx){const t=getTxs();t.unshift(tx);localStorage.setItem('tp_txs',JSON.stringify(t));renderDash();}
 function getTxs(){try{return JSON.parse(localStorage.getItem('tp_txs'))||[];}catch{return[];}}
@@ -1291,7 +1322,7 @@ function filteredTxs(){
     if(el){
       if(txs.length>0){
         const totXof=txs.reduce((s,t)=>s+(t.montantXof||0),0);
-        const totBen=txs.filter(t=>t.type==='envoi').reduce((s,t)=>s+(t.bénéfice||0),0);
+        const totBen=txs.filter(t=>t.type==='envoi').reduce((s,t)=>s+(t.benefice||0),0);
         el.innerHTML=`<div style="background:var(--bg3);border-radius:var(--rs);padding:10px 12px;font-size:12px;margin-top:8px">
           <div style="display:flex;justify-content:space-between;margin-bottom:4px">
             <span style="color:var(--text3)">${txs.length} résultat(s)</span>
@@ -1357,7 +1388,7 @@ function editerTx(id){
       </div>
       <div class="field">
         <label>Bénéfice (${t.type==='envoi'?'MAD':'F'})</label>
-        <input type="number" id="edit-ben" value="${t.bénéfice||0}"
+        <input type="number" id="edit-ben" value="${t.benefice||0}"
           style="width:100%;padding:11px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:15px;font-family:'DM Mono',monospace;color:var(--text);outline:none;-webkit-appearance:none">
       </div>
       <div class="field">
@@ -1385,7 +1416,7 @@ function sauvegarderEdit(id){
   txs[idx].beneficiaire=S('edit-benef').value.trim()||txs[idx].beneficiaire;
   txs[idx].montantXof=parseFloat(S('edit-xof').value)||txs[idx].montantXof;
   txs[idx].montantMAD=parseFloat(S('edit-mad').value)||txs[idx].montantMAD;
-  txs[idx].bénéfice=parseFloat(S('edit-ben').value)||txs[idx].bénéfice;
+  txs[idx].benefice=parseFloat(S('edit-ben').value)||txs[idx].benefice;
   if(S('edit-date').value)txs[idx].date=new Date(S('edit-date').value).toISOString();
   txs[idx].note=S('edit-note').value.trim();
   saveTxs(txs);
@@ -1549,12 +1580,13 @@ function renderHist(){
     const isSel=sel.has(t.id);
     const mP=t.type==='envoi'?fmt(t.montantMAD,2)+' MAD':fmt(t.montantXof)+' F';
     const mS=t.type==='envoi'?fmt(t.montantXof)+' F':fmt(t.montantMAD,2)+' MAD';
-    const ben=t.type==='envoi'?'+'+fmt(t.bénéfice,2)+' MAD':'+'+fmt(t.bénéfice)+' F';
+    const ben=t.type==='envoi'?'+'+fmt(t.benefice,2)+' MAD':'+'+fmt(t.benefice)+' F';
     const badge=t.type==='envoi'
       ?`<span class="badge b-e">↑ ${t.destination||'Mali'}</span>`
       :`<span class="badge b-r">↓ ${t.destination||'Maroc'} ×${t.taux||61.5}</span>`;
     const fondB=t.fondSoutien?'<span class="badge b-f">+fond</span>':'';
     const assocB=t.viaAssoc?'<span class="badge" style="background:rgba(240,165,0,0.1);color:var(--amber)">via associé</span>':'';
+    const agentB=t.gereParAgent?'<span class="badge" style="background:rgba(79,138,255,0.1);color:var(--accent)">agent</span>':'';
     const swipeHint=`<div style="position:absolute;right:14px;top:50%;transform:translateY(-50%);opacity:0.2;pointer-events:none">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
     </div>`;
@@ -1574,7 +1606,7 @@ function renderHist(){
         <div class="tx-left">
           <div class="tx-name">${t.beneficiaire}</div>
           <div class="tx-date">${d} · ${h}</div>
-          <div class="tx-badges">${badge}${fondB}${assocB}</div>
+          <div class="tx-badges">${badge}${fondB}${assocB}${agentB}</div>
         </div>
         <div class="tx-right">
           <div class="tx-amount">${mP}</div>
@@ -1604,8 +1636,8 @@ function renderDash(){
 
   let totXofE=0,totMadR=0,benE=0,benR=0;
   txs.forEach(t=>{
-    if(t.type==='envoi'){totXofE+=t.montantXof||0;benE+=t.bénéfice||0;}
-    else{totMadR+=t.montantMAD||0;benR+=t.bénéfice||0;}
+    if(t.type==='envoi'){totXofE+=t.montantXof||0;benE+=t.benefice||0;}
+    else{totMadR+=t.montantMAD||0;benR+=t.benefice||0;}
   });
   const totalXof=benE*TAUX+benR;
   const totalMad=benE+(benR/TAUX);
@@ -1642,8 +1674,8 @@ function renderJours(){
     if(!map[k])map[k]={date:k,txs:[],benMAD:0,benXof:0,nb:0};
     map[k].txs.push(t);
     map[k].nb++;
-    if(t.type==='envoi')map[k].benMAD+=t.bénéfice||0;
-    else map[k].benXof+=t.bénéfice||0;
+    if(t.type==='envoi')map[k].benMAD+=t.benefice||0;
+    else map[k].benXof+=t.benefice||0;
   });
 
   let jours=Object.values(map).sort((a,b)=>b.date.localeCompare(a.date));
@@ -1674,7 +1706,7 @@ function renderJours(){
             ${t.type==='envoi'?'↑'+( t.destination||'Mali'):'↓Maroc'}
           </span>
         </div>
-        <div style="font-family:'DM Mono',monospace;color:var(--green)">+${t.type==='envoi'?fmt(t.bénéfice||0,2)+' MAD':fmt(t.bénéfice||0)+' F'}</div>
+        <div style="font-family:'DM Mono',monospace;color:var(--green)">+${t.type==='envoi'?fmt(t.benefice||0,2)+' MAD':fmt(t.benefice||0)+' F'}</div>
       </div>`).join('')}
       <div style="display:flex;justify-content:space-between;padding-top:6px;margin-top:2px;font-size:12px;font-weight:600">
         <span style="color:var(--text2)">Total jour</span>
@@ -1697,8 +1729,8 @@ function showPage(p){
   });
   if(p==='hist')renderHist();
   if(p==='dash'){renderDash();renderObjectif();setTimeout(renderGraph,100);setTimeout(renderJours,50);}
-  if(p==='treo'){loadSoldes();simulerLiquidation();renderAgent();renderMargeTaux();renderBrouillon();}
-  if(p==='analyse')setTimeout(renderAnalyses,50);
+  if(p==='treo'){loadSoldes();simulerLiquidation();renderAgent();renderMargeTaux();renderBrouillon();renderRecon();}
+  if(p==='analyse'){renderRecon();renderMargeTaux();setTimeout(renderAnalyses,50);}
   if(p==='settings')loadSettings();
 }
 
@@ -1720,8 +1752,8 @@ function renderAnalyses(){
   const joursRestants=new Date(now.getFullYear(),now.getMonth()+1,0).getDate()-jourDansMois;
   const joursTotal=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
 
-  const benMoisMAD=txsMois.filter(t=>t.type==='envoi').reduce((s,t)=>s+(t.bénéfice||0),0);
-  const benMoisXof=txsMois.filter(t=>t.type==='recep').reduce((s,t)=>s+(t.bénéfice||0),0);
+  const benMoisMAD=txsMois.filter(t=>t.type==='envoi').reduce((s,t)=>s+(t.benefice||0),0);
+  const benMoisXof=txsMois.filter(t=>t.type==='recep').reduce((s,t)=>s+(t.benefice||0),0);
   const benMoisTotal=benMoisMAD+(benMoisXof/TAUX);
   const txParJour=jourDansMois>0?txsMois.length/jourDansMois:0;
   const benParJour=jourDansMois>0?benMoisTotal/jourDansMois:0;
@@ -1735,7 +1767,7 @@ function renderAnalyses(){
   const p=P();
   const txsEnvoisMois=txsMois.filter(t=>t.type==='envoi');
   const totalXofMois=txsEnvoisMois.reduce((s,t)=>s+(t.montantXof||0),0);
-  const benActuel=txsEnvoisMois.reduce((s,t)=>s+(t.bénéfice||0),0);
+  const benActuel=txsEnvoisMois.reduce((s,t)=>s+(t.benefice||0),0);
   const fraisMoins05=benActuel*(p.fmali-0.005)/p.fmali; // si -0.5%
   const fraisPlus05=benActuel*(p.fmali+0.005)/p.fmali;  // si +0.5%
   const diffMoins=fraisMoins05-benActuel;
@@ -1753,8 +1785,8 @@ function renderAnalyses(){
   // ── 5. Meilleur taux (historique) ──
   const recep615=txs.filter(t=>t.type==='recep'&&(t.taux||61.5)===61.5);
   const recep61=txs.filter(t=>t.type==='recep'&&t.taux===61);
-  const ben615moy=recep615.length?recep615.reduce((s,t)=>s+(t.bénéfice||0),0)/recep615.length:0;
-  const ben61moy=recep61.length?recep61.reduce((s,t)=>s+(t.bénéfice||0),0)/recep61.length:0;
+  const ben615moy=recep615.length?recep615.reduce((s,t)=>s+(t.benefice||0),0)/recep615.length:0;
+  const ben61moy=recep61.length?recep61.reduce((s,t)=>s+(t.benefice||0),0)/recep61.length:0;
   const meilleurTaux=ben615moy>=ben61moy?'61,5':'61';
 
   // ── 6. Clients fréquents ──
@@ -1764,7 +1796,7 @@ function renderAnalyses(){
     if(!clientMap[n])clientMap[n]={nb:0,vol:0,ben:0};
     clientMap[n].nb++;
     clientMap[n].vol+=t.montantXof||0;
-    clientMap[n].ben+=t.type==='envoi'?t.bénéfice||0:(t.bénéfice||0)/TAUX;
+    clientMap[n].ben+=t.type==='envoi'?t.benefice||0:(t.benefice||0)/TAUX;
   });
   const topClients=Object.entries(clientMap).sort((a,b)=>b[1].vol-a[1].vol).slice(0,5);
 
@@ -2047,16 +2079,20 @@ function parserSMS(){
   }
 
   // TYPE 3 : Dépôt reçu
-  // "Depot de 10000 FCFA effectue par 94399148. ID : CI260505.1914.C68251..."
+  // "Depot de 10000 FCFA effectue par 94399148. ID : CI260505..."
   if(!parsed){
-    const m3=txt.match(/[Dd]epot de ([\d\s]+)\s*FCFA effectue par ([\d]+).*?ID[:\s]*([A-Z0-9\.]+)/i);
+    const m3=txtN.match(/[Dd]epot de ([\d\s]+)\s*FCFA effectue par ([\d]+).*?ID[:\s]*([A-Za-z0-9\.]+)/i);
     if(m3){
-      parsed={
-        type:'depot',
-        montant:parseInt(m3[1].replace(/\s/g,'')),
-        expediteur:m3[2],
-        id:m3[3]
-      };
+      parsed={type:'depot',montant:parseInt(m3[1].replace(/\s/g,'')),expediteur:m3[2],id:m3[3]};
+    }
+  }
+
+  // TYPE 4 : Transfert reçu
+  // "Vous avez recu un transfert de 172200 FCFA du 70218075. ID: PP260521..."
+  if(!parsed){
+    const m4=txtN.match(/recu un transfert de ([\d\s]+)\s*FCFA du ([\d]+).*?ID[:\s]*([A-Za-z0-9\.]+)/i);
+    if(m4){
+      parsed={type:'depot',montant:parseInt(m4[1].replace(/\s/g,'')),expediteur:m4[2],id:m4[3]};
     }
   }
 
@@ -2204,6 +2240,16 @@ function importerSMS(type){
 
 // ── MARQUEUR ASSOCIÉ ──────────────────────────────────────
 let viaAssoc=false;
+let gereParAgent=true;
+
+function toggleAgentEnvoi(){
+  gereParAgent=!gereParAgent;
+  const box=S('chk-agente-box'),ico=S('chk-agente-ico'),row=S('agent-row-envoi');
+  box.style.background=gereParAgent?'var(--accent)':'transparent';
+  box.style.borderColor=gereParAgent?'var(--accent)':'var(--border2)';
+  ico.style.display=gereParAgent?'block':'none';
+  row.style.borderColor=gereParAgent?'var(--accent)':'var(--border2)';
+}
 function toggleAssoc(){
   viaAssoc=!viaAssoc;
   const box=S('chk-assoc-box'),ico=S('chk-assoc-ico'),row=S('assoc-row');
@@ -2224,7 +2270,6 @@ function genWhatsApp(type){
   let msg='';
   const ref='TP-'+Date.now().toString().slice(-6);
 
-  // Nom du pays propre sans emoji
   // Map pays → nom propre + préposition
   const _map={'Burkina':['Burkina Faso','au'],'Ivoire':["Côte d'Ivoire",'en'],'Sénégal':['Sénégal','au'],'Niger':['Niger','au']};
   const _k=Object.keys(_map).find(k=>paysLabel.includes(k))||'Burkina';
@@ -2232,12 +2277,13 @@ function genWhatsApp(type){
   const prep=dest==='mali'?'au Mali':(_map[_k][1]+' '+nomPays);
 
   if(type==='envoi'){
+    const benef=S('benef-envoi').value||'';
+    const salut='Bonjour'+(benef?' '+benef:'')+',';
     if(sensEnvoi==='xof'){
       const xof=parseFloat(S('montant-xof').value)||0;
       const arr=parseFloat(S('montant-arrondi').value)||0;
-      const benef=S('benef-envoi').value||'';
       if(!arr){toast("Complète la simulation d'abord",'var(--amber)');return;}
-      msg='Bonjour'+(benef?' '+benef:'')+',\n\nPour que *'+fmt(xof)+' F CFA* arrivent '+prep+', vous devez déposer :\n\n💰 *'+fmt(arr,2)+' MAD*\n\nRéf: '+ref+'\n\n_TransfertPro_';
+      msg=salut+'\n\nPour que *'+fmt(xof)+' F CFA* arrivent '+prep+', vous devez déposer :\n\n💰 *'+fmt(arr,2)+' MAD*\n\nRéf: '+ref+'\n\n_SpeedCash_';
     } else {
       const mad=parseFloat(S('montant-emad').value)||0;
       const p=P();
@@ -2248,19 +2294,21 @@ function genWhatsApp(type){
       } else {
         xofNet=Math.round(mad*(1-p.fautre)*p.taux);
       }
-      msg='Bonjour,\n\nPour *'+fmt(mad,2)+' MAD*, le bénéficiaire recevra :\n\n💰 *'+fmt(xofNet)+' F CFA* '+prep+'\n\nRéf: '+ref+'\n\n_TransfertPro_';
+      msg=salut+'\n\nPour *'+fmt(mad,2)+' MAD*, le bénéficiaire recevra :\n\n💰 *'+fmt(xofNet)+' F CFA* '+prep+'\n\nRéf: '+ref+'\n\n_SpeedCash_';
     }
   } else {
+    const benef=S('benef-recep').value||'';
+    const salut='Bonjour'+(benef?' '+benef:'')+',';
     if(sensR==='xof'){
       const xof=parseFloat(S('recep-xof').value)||0;
       const madA=parseFloat(S('arr-mad').value)||0;
       if(!madA){toast("Complète la simulation d'abord",'var(--amber)');return;}
-      msg='Bonjour,\n\nPour un dépôt de *'+fmt(xof)+' F CFA* au Mali :\n\n💰 Vous recevrez *'+fmt(madA,2)+' MAD* au Maroc\n\nRéf: '+ref+'\n\n_TransfertPro_';
+      msg=salut+'\n\nPour un dépôt de *'+fmt(xof)+' F CFA* au Mali :\n\n💰 Vous recevrez *'+fmt(madA,2)+' MAD* au Maroc\n\nRéf: '+ref+'\n\n_SpeedCash_';
     } else {
       const mad=parseFloat(S('recep-mad').value)||0;
       const xofA=parseFloat(S('arr-xof').value)||0;
       if(!xofA){toast("Complète la simulation d'abord",'var(--amber)');return;}
-      msg='Bonjour,\n\nPour recevoir *'+fmt(mad,2)+' MAD* au Maroc :\n\nDéposer *'+fmt(xofA)+' F CFA* au Mali\n\nRéf: '+ref+'\n\n_TransfertPro_';
+      msg=salut+'\n\nPour recevoir *'+fmt(mad,2)+' MAD* au Maroc :\n\nDéposer *'+fmt(xofA)+' F CFA* au Mali\n\nRéf: '+ref+'\n\n_SpeedCash_';
     }
   }
     // Copier dans le presse-papier
@@ -2321,8 +2369,8 @@ function renderObjectif(){
   });
   let benMoisMAD=0,benMoisXof=0;
   txsMois.forEach(t=>{
-    if(t.type==='envoi')benMoisMAD+=t.bénéfice||0;
-    else benMoisXof+=t.bénéfice||0;
+    if(t.type==='envoi')benMoisMAD+=t.benefice||0;
+    else benMoisXof+=t.benefice||0;
   });
   const benMois=obj.devise==='MAD'?benMoisMAD+(benMoisXof/TAUX):benMoisXof+(benMoisMAD*TAUX);
   const pct=Math.min(100,Math.round((benMois/obj.montant)*100));
@@ -2441,7 +2489,7 @@ function renderBrouillon(){
   txsFilt.forEach(t=>{
     const ga=t.gainArrondi||0;
     arrondisAuto+=ga;
-    benBase+=(t.bénéfice||0)-ga;
+    benBase+=(t.benefice||0)-ga;
   });
 
   let arrondisManuel=0,benManuel=0;
@@ -2543,47 +2591,160 @@ function reconcilier(){
     </div>`;
 }
 function getDépenses(){try{return JSON.parse(localStorage.getItem('tp_agent'))||[];}catch{return[];}}
+// ── RÉCONCILIATION AGENT ──────────────────────────────────
+let reconPeriod='jour';
+function setReconPeriod(p,btn){
+  reconPeriod=p;
+  ['rc-jour','rc-hier','rc-semaine','rc-libre'].forEach(id=>{const el=S(id);if(el)el.classList.remove('on');});
+  if(btn)btn.classList.add('on');
+  S('ragent-dates').style.display=p==='libre'?'grid':'none';
+  renderRecon();
+}
+
+function getReconTxs(){
+  const txs=getTxs().filter(t=>t.gereParAgent);
+  const now=new Date();
+  const todayStr=now.toISOString().slice(0,10);
+  const hier=new Date(now-86400000).toISOString().slice(0,10);
+  if(reconPeriod==='jour') return txs.filter(t=>new Date(t.date).toISOString().slice(0,10)===todayStr);
+  if(reconPeriod==='hier') return txs.filter(t=>new Date(t.date).toISOString().slice(0,10)===hier);
+  if(reconPeriod==='semaine'){const lim=new Date(now-7*86400000);return txs.filter(t=>new Date(t.date)>=lim);}
+  if(reconPeriod==='libre'){
+    const d=S('ragent-debut')?.value,f=S('ragent-fin')?.value;
+    if(!d||!f)return [];
+    return txs.filter(t=>{const x=new Date(t.date);return x>=new Date(d)&&x<=new Date(f+'T23:59:59');});
+  }
+  return txs;
+}
+
+function renderRecon(){
+  const el=S('ragent-result');if(!el)return;
+  const txs=getReconTxs();
+  const envois=txs.filter(t=>t.type==='envoi');
+  const receps=txs.filter(t=>t.type==='recep');
+  const totalRecuperer=envois.reduce((s,t)=>s+(t.montantMAD||0),0);
+  const totalRemettre=receps.reduce((s,t)=>s+(t.montantMAD||0),0);
+  const soldeTheorique=totalRecuperer-totalRemettre;
+
+  el.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;min-width:0">
+      <div style="background:var(--bg3);border-radius:var(--rs);padding:10px;border:0.5px solid rgba(46,204,138,0.2)">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:4px;letter-spacing:.4px">À RÉCUPÉRER</div>
+        <div style="font-size:16px;font-weight:600;font-family:'DM Mono',monospace;color:var(--green)">+${fmt(totalRecuperer,2)} MAD</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">${envois.length} envoi${envois.length>1?'s':''}</div>
+      </div>
+      <div style="background:var(--bg3);border-radius:var(--rs);padding:10px;border:0.5px solid rgba(255,79,106,0.2)">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:4px;letter-spacing:.4px">À REMETTRE</div>
+        <div style="font-size:16px;font-weight:600;font-family:'DM Mono',monospace;color:var(--red)">${fmt(totalRemettre,2)} MAD</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">${receps.length} réception${receps.length>1?'s':''}</div>
+      </div>
+    </div>
+    <div style="background:rgba(79,138,255,0.07);border:0.5px solid rgba(79,138,255,0.2);border-radius:var(--rs);padding:12px">
+      <div style="font-size:11px;color:var(--text3);letter-spacing:.4px;margin-bottom:4px">SOLDE THÉORIQUE AGENT</div>
+      <div style="font-size:22px;font-weight:600;font-family:'DM Mono',monospace;color:var(--accent)">${fmt(soldeTheorique,2)} MAD</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">${txs.length} transaction${txs.length>1?'s':''} sur la période</div>
+    </div>
+    ${envois.length?`<div style="margin-top:10px">
+      <div style="font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:500;letter-spacing:.3px">DÉTAIL À RÉCUPÉRER</div>
+      ${envois.slice(0,10).map(t=>'<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid var(--border);font-size:12px"><span style="color:var(--text2)">'+new Date(t.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'short'})+' · '+(t.beneficiaire||'—')+'</span><span style="font-family:DM Mono,monospace;color:var(--green)">+'+fmt(t.montantMAD||0,2)+' MAD</span></div>').join('')}
+      ${envois.length>10?'<div style="padding:6px 0;font-size:11px;color:var(--text3)">+'+(envois.length-10)+' autres</div>':''}
+    </div>`:''}
+    ${receps.length?`<div style="margin-top:10px">
+      <div style="font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:500;letter-spacing:.3px">DÉTAIL À REMETTRE</div>
+      ${receps.map(t=>'<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid var(--border);font-size:12px"><span style="color:var(--text2)">'+new Date(t.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'short'})+' · '+(t.beneficiaire||'—')+'</span><span style="font-family:DM Mono,monospace;color:var(--red)">'+fmt(t.montantMAD||0,2)+' MAD</span></div>').join('')}
+    </div>`:''}`;
+  window._reconSolde=soldeTheorique;
+  window._reconEnvois=envois;
+  renderReconEcart();
+}
+
+function renderReconEcart(){
+  const el=S('ragent-ecart');if(!el)return;
+  const v=parseFloat(S('ragent-declare')?.value);
+  if(isNaN(v)){el.innerHTML='';return;}
+  const th=window._reconSolde||0;
+  const ecart=v-th;
+  const envois=window._reconEnvois||[];
+  if(Math.abs(ecart)<1){
+    el.innerHTML='<div style="background:rgba(46,204,138,0.08);border:0.5px solid rgba(46,204,138,0.2);border-radius:var(--rs);padding:10px;font-size:13px;color:var(--green)">✅ Cohérent — écart '+fmt(Math.abs(ecart),2)+' MAD</div>';
+  } else if(ecart<0){
+    const manque=Math.abs(ecart);
+    const cand=envois.filter(t=>(t.montantMAD||0)<=manque+50).sort((a,b)=>(b.montantMAD||0)-(a.montantMAD||0));
+    el.innerHTML='<div style="background:rgba(240,165,0,0.08);border:0.5px solid rgba(240,165,0,0.2);border-radius:var(--rs);padding:10px"><div style="font-size:13px;color:var(--amber);font-weight:500;margin-bottom:6px">⚠️ Écart de −'+fmt(manque,2)+' MAD</div><div style="font-size:12px;color:var(--text2);margin-bottom:6px">L\'agent a '+fmt(manque,2)+' MAD de moins que prévu.</div>'
+      +(cand.length?'<div style="font-size:11px;color:var(--text3);margin-bottom:4px">Transactions non récupérées possibles :</div>'+cand.slice(0,5).map(t=>'<div style="font-size:12px;color:var(--amber);padding:2px 0">→ '+(t.beneficiaire||'—')+' : '+fmt(t.montantMAD||0,2)+' MAD</div>').join(''):'')+'</div>';
+  } else {
+    el.innerHTML='<div style="background:rgba(79,138,255,0.08);border:0.5px solid rgba(79,138,255,0.2);border-radius:var(--rs);padding:10px"><div style="font-size:13px;color:var(--accent);font-weight:500">ℹ️ L\'agent déclare +'+fmt(ecart,2)+' MAD de plus</div><div style="font-size:12px;color:var(--text2);margin-top:4px">Montant non enregistré dans l\'app ?</div></div>';
+  }
+}
+
 function ajouterDepenseAgent(){
   const montant=parseFloat(S('agent-montant').value);
   const note=S('agent-note').value.trim()||'Commission agent';
   if(!montant||montant<=0){toast('Montant invalide','var(--red)');return;}
   const deps=getDépenses();
-  deps.unshift({id:Date.now(),date:new Date().toISOString(),montant,note});
+  
+  // Logique : déduire des arrondis agent d'abord, poche MAD ensuite
+  const txs=getTxs();
+  const totalArrondis=txs.reduce((s,t)=>s+(t.gainArrondi||0),0);
+  const totalDepsPrecedentes=deps.reduce((s,d)=>s+d.montant,0);
+  const arrondisDisponibles=Math.max(0,totalArrondis-totalDepsPrecedentes);
+  
+  let surArrondis=Math.min(montant,arrondisDisponibles);
+  let surPoche=montant-surArrondis;
+  
+  deps.unshift({id:Date.now(),date:new Date().toISOString(),montant,note,surArrondis,surPoche});
   localStorage.setItem('tp_agent',JSON.stringify(deps));
-  // Déduire automatiquement du solde MAD
-  try{
-    const s=JSON.parse(localStorage.getItem('tp_soldes'))||{};
-    const madActuel=parseFloat(s.mad)||0;
-    const nouveauMAD=Math.max(0,madActuel-montant);
-    s.mad=nouveauMAD;s.updated=new Date().toISOString();
-    localStorage.setItem('tp_soldes',JSON.stringify(s));
-    if(S('solde-mad'))S('solde-mad').value=nouveauMAD;
-    simulerLiquidation();
-  }catch(e){}
+  
+  // Déduire de la poche MAD seulement la part non couverte par les arrondis
+  if(surPoche>0){
+    try{
+      const s=JSON.parse(localStorage.getItem('tp_soldes'))||{};
+      const madActuel=parseFloat(s.mad)||0;
+      s.mad=Math.max(0,madActuel-surPoche);
+      s.updated=new Date().toISOString();
+      localStorage.setItem('tp_soldes',JSON.stringify(s));
+      if(S('solde-mad'))S('solde-mad').value=s.mad;
+      simulerLiquidation();
+    }catch(e){}
+  }
+  
   S('agent-montant').value='';S('agent-note').value='';
-  blurAll();haptic();toast('✓ Dépense enregistrée — solde MAD mis à jour');
-  renderAgent();
+  blurAll();haptic();
+  const msg=surPoche>0
+    ?'✓ '+fmt(surArrondis,2)+' MAD sur arrondis + '+fmt(surPoche,2)+' MAD sur poche'
+    :'✓ '+fmt(montant,2)+' MAD déduit des arrondis — poche intacte';
+  toast(msg);
+  renderAgent();renderBrouillon();
 }
 function renderAgent(){
   const deps=getDépenses();
   const el=S('agent-list');
   const total=deps.reduce((s,d)=>s+d.montant,0);
+  const totalSurArrondis=deps.reduce((s,d)=>s+(d.surArrondis||0),0);
+  const totalSurPoche=deps.reduce((s,d)=>s+(d.surPoche||d.montant),0);
   S('total-agent-label').textContent='Total : '+fmt(total,2)+' MAD';
   if(!deps.length){
     el.innerHTML='<div style="padding:20px 0;text-align:center;color:var(--text3);font-size:13px">Aucune dépense enregistrée</div>';
     return;
   }
-  el.innerHTML=deps.map(d=>{
+  el.innerHTML=`<div style="padding:10px 0;border-bottom:0.5px solid var(--border);font-size:12px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--text3)">Sur arrondis agent</span><span style="font-family:'DM Mono',monospace;color:var(--amber)">${fmt(totalSurArrondis,2)} MAD</span></div>
+    <div style="display:flex;justify-content:space-between"><span style="color:var(--text3)">Sur poche MAD</span><span style="font-family:'DM Mono',monospace;color:var(--red)">${fmt(totalSurPoche,2)} MAD</span></div>
+  </div>`+deps.map(d=>{
     const date=new Date(d.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'short'});
     const h=new Date(d.date).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    const src=d.surPoche>0?'arrondis+poche':'arrondis';
     return `<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:0.5px solid var(--border)">
       <div>
         <div style="font-size:14px;font-weight:500">${d.note}</div>
-        <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px">${date} · ${h}</div>
+        <div style="display:flex;gap:6px;margin-top:3px">
+          <span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace">${date} · ${h}</span>
+          <span style="font-size:10px;padding:1px 6px;border-radius:10px;background:${d.surPoche>0?'rgba(255,79,106,0.1)':'rgba(240,165,0,0.1)'};color:${d.surPoche>0?'var(--red)':'var(--amber)'}">${src}</span>
+        </div>
       </div>
-      <div style="text-align:right">
-        <div style="font-size:14px;font-weight:600;font-family:'DM Mono',monospace;color:var(--amber)">− ${fmt(d.montant,2)} MAD</div>
-        <div onclick="suppDepense(${d.id})" style="font-size:11px;color:var(--red);cursor:pointer;margin-top:3px">Supprimer</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="font-size:14px;font-weight:600;font-family:'DM Mono',monospace;color:var(--red)">−${fmt(d.montant,2)} MAD</div>
+        <div onclick="suppDepense(${d.id})" style="font-size:14px;color:var(--red);cursor:pointer">✕</div>
       </div>
     </div>`;
   }).join('');
@@ -2702,7 +2863,7 @@ function exportCSV(){
       t.montantXof||0,
       t.montantMAD||0,
       t.taux||'',
-      (t.bénéfice||0).toFixed(2),
+      (t.benefice||0).toFixed(2),
       t.devise||''
     ].join(',');
   });
@@ -2711,7 +2872,7 @@ function exportCSV(){
   const csvUrl=URL.createObjectURL(csvBlob);
   const csvA=document.createElement('a');
   csvA.href=csvUrl;
-  csvA.download='transfertpro_'+new Date().toISOString().slice(0,10)+'.csv';
+  csvA.download='speedcash_'+new Date().toISOString().slice(0,10)+'.csv';
   document.body.appendChild(csvA);csvA.click();
   document.body.removeChild(csvA);
   setTimeout(()=>URL.revokeObjectURL(csvUrl),1000);
@@ -2739,7 +2900,7 @@ function renderGraph(){
     const k=new Date(t.date).toISOString().slice(0,10);
     if(k in map){
       // Convertir tout en MAD
-      const ben=t.type==='envoi'?(t.bénéfice||0):(t.bénéfice||0)/TAUX;
+      const ben=t.type==='envoi'?(t.benefice||0):(t.benefice||0)/TAUX;
       map[k]+=ben;
     }
   });
@@ -2904,8 +3065,11 @@ function previewRapport(){
   });
   if(rapportCat==='envoi') txs=txs.filter(t=>t.type==='envoi');
   else if(rapportCat==='recep') txs=txs.filter(t=>t.type==='recep');
+
+  const isAgent=masquerBenef;
+  if(isAgent) txs=txs.filter(t=>t.gereParAgent);
   const totXof=txs.reduce((s,t)=>s+(t.montantXof||0),0);
-  const totBen=txs.filter(t=>t.type==='envoi').reduce((s,t)=>s+(t.bénéfice||0),0);
+  const totBen=txs.filter(t=>t.type==='envoi').reduce((s,t)=>s+(t.benefice||0),0);
   el.innerHTML=`<div style="background:var(--bg3);border-radius:var(--rs);padding:10px 12px;font-size:12px">
     <div style="display:flex;justify-content:space-between;margin-bottom:4px">
       <span style="color:var(--text3)">${txs.length} transaction(s)</span>
@@ -2944,24 +3108,32 @@ function genererPDF(){
   if(rapportCat==='envoi') txs=txs.filter(t=>t.type==='envoi');
   else if(rapportCat==='recep') txs=txs.filter(t=>t.type==='recep');
 
+  const isAgent=masquerBenef;
+  if(isAgent) txs=txs.filter(t=>t.gereParAgent);
+
   if(!txs.length){toast('Aucune transaction sur cette période','var(--amber)');return;}
 
   const totXofE=txs.filter(t=>t.type==='envoi').reduce((s,t)=>s+(t.montantXof||0),0);
   const totXofAll=txs.reduce((s,t)=>s+(t.montantXof||0),0);
   const totMadAll=txs.reduce((s,t)=>s+(t.montantMAD||0),0);
   const totMadR=txs.filter(t=>t.type==='recep').reduce((s,t)=>s+(t.montantMAD||0),0);
-  const benEnvois=txs.filter(t=>t.type==='envoi').reduce((s,t)=>s+(t.bénéfice||0),0);
-  const benRecep=txs.filter(t=>t.type==='recep').reduce((s,t)=>s+(t.bénéfice||0),0);
+  const benEnvois=txs.filter(t=>t.type==='envoi').reduce((s,t)=>s+(t.benefice||0),0);
+  const benRecep=txs.filter(t=>t.type==='recep').reduce((s,t)=>s+(t.benefice||0),0);
   const viaAssocNb=txs.filter(t=>t.viaAssoc).length;
   const catLabel=rapportCat==='envoi'?'Envois uniquement':rapportCat==='recep'?'Réceptions uniquement':'Envois + Réceptions';
-  const isAgent=masquerBenef;  // version agent = masquer bénéfices
   const fmtDate=s=>new Date(s).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
 
-  // Version agent : sans bénéfices, avec case à cocher de confirmation
-  const agentMark=isAgent?'<th style="width:60px">Confirmé</th>':'';
+  // Version agent : format séparé récupérer / remettre / solde
+  const agentMark=isAgent?'<th style="width:50px">OK</th>':'';
+  const envoisAgent=txs.filter(t=>t.type==='envoi');
+  const recepsAgent=txs.filter(t=>t.type==='recep');
+  const totalRecup=envoisAgent.reduce((s,t)=>s+(t.montantMAD||0),0);
+  const totalRemis=recepsAgent.reduce((s,t)=>s+(t.montantMAD||0),0);
+  const soldeAgent=totalRecup-totalRemis;
+
   const html=`<!DOCTYPE html>
 <html lang="fr"><head><meta charset="UTF-8">
-<title>${isAgent?'Relevé Agent':'Relevé TransfertPro'} — ${fmtDate(debut)} au ${fmtDate(fin)}</title>
+<title>${isAgent?'Récap Agent':'Relevé SpeedCash'} — ${fmtDate(debut)} au ${fmtDate(fin)}</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:Arial,sans-serif;font-size:12px;color:#111;padding:16px;max-width:750px;margin:0 auto}
@@ -2969,10 +3141,22 @@ function genererPDF(){
   .meta{color:#666;font-size:11px;margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap}
   .meta span{background:#f5f5f5;padding:2px 8px;border-radius:20px}
   .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:16px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
   .stat{background:#f8f9ff;border-radius:6px;padding:10px;border-left:3px solid #4f8aff}
   .stat .label{font-size:9px;color:#888;margin-bottom:3px;text-transform:uppercase;letter-spacing:.4px}
   .stat .val{font-size:14px;font-weight:700;color:#111}
   .stat .val.g{color:#1a7040}
+  .s-green{background:#eaf3de;border-left-color:#3b6d11}
+  .s-red{background:#fcebeb;border-left-color:#a32d2d}
+  .s-blue{background:#e6f1fb;border-left-color:#185fa5}
+  .section-title{font-size:11px;font-weight:600;color:#555;letter-spacing:.4px;text-transform:uppercase;margin:16px 0 8px;padding-bottom:6px;border-bottom:1px solid #eee}
+  .line{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f5f5f5}
+  .line-name{font-size:13px;font-weight:500}
+  .line-date{font-size:10px;color:#999;margin-top:2px}
+  .line-mad{font-size:13px;font-weight:600;font-family:monospace}
+  .line-mad.green{color:#1a7040}
+  .line-mad.red{color:#a32d2d}
+  .chk{width:16px;height:16px;border:1.5px solid #aaa;border-radius:3px;display:inline-block;flex-shrink:0}
   table{width:100%;border-collapse:collapse;font-size:11px;margin-top:4px}
   th{padding:6px 4px;background:#f0f4ff;font-size:9px;text-transform:uppercase;color:#555;text-align:left;border-bottom:2px solid #dde}
   td{padding:6px 4px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
@@ -2981,31 +3165,82 @@ function genererPDF(){
   .br{background:#e6f7ee;color:#1a7040}
   .ba{background:#fff3e0;color:#b35c00}
   .tot{font-weight:700;background:#f0f8f0}
-  .chk{width:16px;height:16px;border:1.5px solid #aaa;border-radius:3px;display:inline-block}
-  footer{margin-top:20px;text-align:center;color:#aaa;font-size:10px;border-top:1px solid #eee;padding-top:10px}
   .agent-note{background:#fffbe6;border:1px solid #ffe58f;border-radius:6px;padding:10px;margin-bottom:14px;font-size:11px;color:#7d6608}
-  @media print{@page{margin:1cm} .agent-note{display:block}}
+  .sig-block{margin-top:24px;padding:14px;border:1px solid #ddd;border-radius:6px}
+  footer{margin-top:20px;text-align:center;color:#aaa;font-size:10px;border-top:1px solid #eee;padding-top:10px}
+  @media print{@page{margin:1cm}}
 </style></head><body>
-<h1>${isAgent?'📋 Récapitulatif Agent':'📋 Relevé TransfertPro'}</h1>
+
+${isAgent?`
+<h1>📋 Récaputilaf des transactions</h1>
+<div class="meta">
+  <span>📅 Du ${fmtDate(debut)} au ${fmtDate(fin)}</span>
+  <span>🔢 ${txs.length} transactions</span>
+</div>
+
+<div class="agent-note">
+  Merci de vérifier chaque montant. En cas d'écart, signaler immédiatement.
+</div>
+
+<!-- Résumé visuel -->
+<div class="grid2">
+  <div class="stat s-green"><div class="label">À récupérer</div><div class="val" style="color:#1a7040">+${fmt(totalRecup,2)} MAD</div><div class="label" style="margin-top:4px">${envoisAgent.length} envoi${envoisAgent.length>1?'s':''}</div></div>
+  <div class="stat s-red"><div class="label">À remettre</div><div class="val" style="color:#a32d2d">${fmt(totalRemis,2)} MAD</div><div class="label" style="margin-top:4px">${recepsAgent.length} réception${recepsAgent.length>1?'s':''}</div></div>
+</div>
+<div class="stat s-blue" style="margin-bottom:16px"><div class="label">Solde à conserver</div><div class="val" style="font-size:20px;color:#185fa5">${fmt(soldeAgent,2)} MAD</div></div>
+
+<!-- Liste à récupérer -->
+${envoisAgent.length?`
+<div class="section-title">À récupérer auprès des clients</div>
+${envoisAgent.map((t,i)=>{
+  const d=new Date(t.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'});
+  const h=new Date(t.date).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  return '<div class="line"><div><div class="line-name">'+(i+1)+'. '+(t.beneficiaire||'—')+'</div><div class="line-date">'+d+' '+h+' · '+(t.destination||'')+'</div></div><div style="display:flex;align-items:center;gap:10px"><span class="line-mad green">+'+fmt(t.montantMAD||0,2)+' MAD</span><span class="chk"></span></div></div>';
+}).join('')}
+`:''}
+
+<!-- Liste à remettre -->
+${recepsAgent.length?`
+<div class="section-title">À remettre aux bénéficiaires</div>
+${recepsAgent.map((t,i)=>{
+  const d=new Date(t.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'});
+  const h=new Date(t.date).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  return '<div class="line"><div><div class="line-name">'+(i+1)+'. '+(t.beneficiaire||'—')+'</div><div class="line-date">'+d+' '+h+'</div></div><div style="display:flex;align-items:center;gap:10px"><span class="line-mad red">'+fmt(t.montantMAD||0,2)+' MAD</span><span class="chk"></span></div></div>';
+}).join('')}
+`:''}
+
+<!-- Récap final -->
+<div class="section-title">Récapitulatif</div>
+<div class="line"><div class="line-name">Total récupéré</div><span class="line-mad green">+${fmt(totalRecup,2)} MAD</span></div>
+<div class="line"><div class="line-name">Total remis</div><span class="line-mad red">−${fmt(totalRemis,2)} MAD</span></div>
+<div class="line" style="border-bottom:2px solid #333"><div class="line-name" style="font-weight:700">Solde à conserver</div><span class="line-mad" style="font-size:16px;color:#185fa5">${fmt(soldeAgent,2)} MAD</span></div>
+
+<!-- Signature -->
+<div class="sig-block">
+  <div style="font-size:11px;font-weight:600;margin-bottom:16px">CONFIRMATION AGENT</div>
+  <div style="font-size:11px;color:#666;margin-bottom:20px">Je confirme avoir récupéré et/ou remis les montants ci-dessus.</div>
+  <div style="display:flex;justify-content:space-between">
+    <div style="text-align:center;flex:1"><div style="border-top:1px solid #333;width:120px;margin:0 auto;padding-top:4px;font-size:10px;color:#888">Date</div></div>
+    <div style="text-align:center;flex:1"><div style="border-top:1px solid #333;width:120px;margin:0 auto;padding-top:4px;font-size:10px;color:#888">Montant confirmé</div></div>
+    <div style="text-align:center;flex:1"><div style="border-top:1px solid #333;width:120px;margin:0 auto;padding-top:4px;font-size:10px;color:#888">Signature</div></div>
+  </div>
+</div>
+`:`
+<h1>📋 Relevé SpeedCash</h1>
 <div class="meta">
   <span>📅 Du ${fmtDate(debut)} au ${fmtDate(fin)}</span>
   <span>📂 ${catLabel}</span>
   <span>🔢 ${txs.length} transactions</span>
+  <span>🏷️ Via associé : ${viaAssocNb}</span>
 </div>
-
-${isAgent?`<div class="agent-note">
-  ⚠️ Document confidentiel — Merci de confirmer chaque montant reçu et déposé en cochant la case correspondante. 
-  Toute incohérence doit être signalée immédiatement.
-</div>`:''}
 
 <div class="grid">
   <div class="stat"><div class="label">Total transactions</div><div class="val">${txs.length}</div></div>
   <div class="stat"><div class="label">Total envoyé (XOF)</div><div class="val">${fmt(totXofAll)} F</div></div>
   <div class="stat"><div class="label">Total MAD traité</div><div class="val">${fmt(totMadAll,2)} MAD</div></div>
-  ${!isAgent?`
   <div class="stat"><div class="label">Bén. envois</div><div class="val g">+${fmt(benEnvois,2)} MAD</div></div>
   <div class="stat"><div class="label">Bén. réceptions</div><div class="val g">+${fmt(benRecep)} F</div></div>
-  <div class="stat"><div class="label">Total bénéfice estimé</div><div class="val g">≈${fmt(benEnvois*TAUX+benRecep)} F</div></div>`:''}
+  <div class="stat"><div class="label">Total bénéfice estimé</div><div class="val g">≈${fmt(benEnvois*TAUX+benRecep)} F</div></div>
 </div>
 
 <table>
@@ -3016,8 +3251,7 @@ ${isAgent?`<div class="agent-note">
     <th>Destination</th>
     <th style="width:70px">XOF</th>
     <th style="width:70px">MAD</th>
-    ${!isAgent?'<th style="width:80px">Bénéfice</th>':''}
-    ${agentMark}
+    <th style="width:80px">Bénéfice</th>
   </tr></thead>
   <tbody>
     ${txs.map(t=>{
@@ -3025,7 +3259,7 @@ ${isAgent?`<div class="agent-note">
       const h=new Date(t.date).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
       const type=t.type==='envoi'?'<span class="badge be">↑ Envoi</span>':'<span class="badge br">↓ Réception</span>';
       const assoc=t.viaAssoc?' <span class="badge ba">assoc.</span>':'';
-      const ben=t.type==='envoi'?'+'+fmt(t.bénéfice||0,2)+' MAD':'+'+fmt(t.bénéfice||0)+' F';
+      const ben=t.type==='envoi'?'+'+fmt(t.benefice||0,2)+' MAD':'+'+fmt(t.benefice||0)+' F';
       return '<tr>'
         +'<td>'+d+' '+h+'</td>'
         +'<td>'+(t.beneficiaire||'—')+'</td>'
@@ -3033,28 +3267,20 @@ ${isAgent?`<div class="agent-note">
         +'<td>'+(t.destination||'—')+'</td>'
         +'<td>'+fmt(t.montantXof||0)+' F</td>'
         +'<td>'+fmt(t.montantMAD||0,2)+' MAD</td>'
-        +(!isAgent?'<td style="color:#1a7040;font-weight:500">'+ben+'</td>':'')
-        +(isAgent?'<td><span class="chk"></span></td>':'')
+        +'<td style="color:#1a7040;font-weight:500">'+ben+'</td>'
         +'</tr>';
     }).join('')}
     <tr class="tot">
-      <td colspan="3">TOTAL PÉRIODE</td>
-      <td></td>
+      <td colspan="4">TOTAL PÉRIODE</td>
       <td>${fmt(totXofAll)} F</td>
       <td>${fmt(totMadAll,2)} MAD</td>
-      ${!isAgent?'<td style="color:#1a7040">+'+fmt(benEnvois,2)+' MAD / +'+fmt(benRecep)+' F</td>':''}
-      ${isAgent?'<td></td>':''}
+      <td style="color:#1a7040">+${fmt(benEnvois,2)} MAD / +${fmt(benRecep)} F</td>
     </tr>
   </tbody>
 </table>
-${isAgent?`<div style="margin-top:24px;padding:12px;border:1px solid #ddd;border-radius:6px">
-  <div style="font-size:11px;font-weight:600;margin-bottom:12px">SIGNATURE ET CONFIRMATION AGENT</div>
-  <div style="display:flex;justify-content:space-between;margin-top:30px">
-    <div style="text-align:center;flex:1"><div style="border-top:1px solid #333;width:120px;margin:0 auto;padding-top:4px;font-size:10px;color:#888">Date</div></div>
-    <div style="text-align:center;flex:1"><div style="border-top:1px solid #333;width:120px;margin:0 auto;padding-top:4px;font-size:10px;color:#888">Signature agent</div></div>
-  </div>
-</div>`:''}
-<footer>TransfertPro · ${isAgent?'Document agent confidentiel':'Relevé confidentiel'} · Généré le ${new Date().toLocaleDateString('fr-FR')}</footer>
+`}
+
+<footer>SpeedCash · ${isAgent?'Document agent confidentiel':'Relevé confidentiel'} · Généré le ${new Date().toLocaleDateString('fr-FR')}</footer>
 </body></html>`;
 
   // Modale plein écran — impression via iframe isolé
