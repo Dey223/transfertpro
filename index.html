@@ -608,7 +608,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
       <div class="section-t">Import SMS Orange Mali</div>
       <div class="card">
         <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6">
-          Colle un SMS reçu d'Orange Mali — l'app détecte automatiquement le type et extrait les données.
+          Colle un SMS reçu d'Orange Mali 
         </div>
         <textarea id="sms-input" placeholder="Colle ton SMS ici...&#10;Ex: Votre transfert de 40200 FCFA vers le 71847081..."
           style="width:100%;padding:12px 14px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;resize:none;min-height:90px;line-height:1.5"
@@ -1264,7 +1264,23 @@ function isPWA(){
 
 // ── STOCKAGE ──────────────────────────────────────────────
 function save(tx){const t=getTxs();t.unshift(tx);localStorage.setItem('tp_txs',JSON.stringify(t));renderDash();}
-function getTxs(){try{return JSON.parse(localStorage.getItem('tp_txs'))||[];}catch{return[];}}
+function getTxs(){
+  try{
+    const txs=JSON.parse(localStorage.getItem('tp_txs'))||[];
+    // Normaliser : bénéfice (accent) → benefice (sans accent)
+    let dirty=false;
+    txs.forEach(t=>{
+      if(t['bénéfice']!==undefined){
+        t.benefice=t['bénéfice'];
+        delete t['bénéfice'];
+        dirty=true;
+      }
+      if(t.benefice===undefined)t.benefice=0;
+    });
+    if(dirty)localStorage.setItem('tp_txs',JSON.stringify(txs));
+    return txs;
+  }catch{return[];}
+}
 function saveTxs(t){localStorage.setItem('tp_txs',JSON.stringify(t));}
 
 // ── FILTRE HISTORIQUE ─────────────────────────────────────
@@ -1460,7 +1476,15 @@ function importJSON(){
         const data=JSON.parse(ev.target.result);
         if(!data.txs){toast('Fichier invalide','var(--red)');return;}
         if(!confirm(`Restaurer ${data.txs.length} transactions ? Les données actuelles seront remplacées.`))return;
-        if(data.txs)localStorage.setItem('tp_txs',JSON.stringify(data.txs));
+        if(data.txs){
+          // Normaliser bénéfice avec accent
+          data.txs.forEach(t=>{
+            if(t['bénéfice']!==undefined && t.benefice===undefined){
+              t.benefice=t['bénéfice'];delete t['bénéfice'];
+            }
+          });
+          localStorage.setItem('tp_txs',JSON.stringify(data.txs));
+        }
         if(data.contacts)localStorage.setItem('tp_contacts',JSON.stringify(data.contacts));
         if(data.brouillon)localStorage.setItem('tp_brouillon',JSON.stringify(data.brouillon));
         if(data.agent)localStorage.setItem('tp_agent',JSON.stringify(data.agent));
@@ -3172,7 +3196,7 @@ function genererPDF(){
 </style></head><body>
 
 ${isAgent?`
-<h1>📋 Récaputilaf des transactions</h1>
+<h1>📋 Récaputilatif des transactions </h1>
 <div class="meta">
   <span>📅 Du ${fmtDate(debut)} au ${fmtDate(fin)}</span>
   <span>🔢 ${txs.length} transactions</span>
