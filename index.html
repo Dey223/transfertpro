@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -396,6 +398,21 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
           </button>
         </div>
       </div>
+
+      <!-- SIMULATEUR DE RENTABILITÉ -->
+      <div class="section-t" style="margin-top:20px">Simulateur de rentabilité</div>
+      <div class="card" style="padding:14px 16px">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6">
+          "J'ai X CFA — combien je gagne selon le pays et le type ?"
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+          <input type="number" id="renta-montant" inputmode="numeric" placeholder="Ex: 500000"
+            style="flex:1;padding:11px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:16px;font-family:'DM Mono',monospace;color:var(--text);outline:none;-webkit-appearance:none"
+            oninput="calculerRentabilite()">
+          <span style="font-size:13px;color:var(--text2)">F CFA</span>
+        </div>
+        <div id="renta-result"></div>
+      </div>
     </div>
 
     <!-- ══ HISTORIQUE ══ -->
@@ -608,7 +625,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
       <div class="section-t">Import SMS Orange Mali</div>
       <div class="card">
         <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6">
-          Colle un SMS reçu d'Orange Mali 
+          Colle un SMS reçu d'Orange Mali — l'app détecte automatiquement le type et extrait les données.
         </div>
         <textarea id="sms-input" placeholder="Colle ton SMS ici...&#10;Ex: Votre transfert de 40200 FCFA vers le 71847081..."
           style="width:100%;padding:12px 14px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;resize:none;min-height:90px;line-height:1.5"
@@ -834,6 +851,31 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
         </button>
       </div>
 
+      <div class="section-t">Automatisations (n8n)</div>
+      <div class="card">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.6">
+          Connecte ton app à n8n pour les alertes WhatsApp automatiques.
+        </div>
+        <div class="field">
+          <label>Webhook URL (n8n)</label>
+          <input type="url" id="cfg-webhook" placeholder="https://ton-n8n.com/webhook/xxx"
+            style="width:100%;padding:10px 12px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:13px;font-family:'DM Mono',monospace;color:var(--text);outline:none">
+        </div>
+        <div class="field">
+          <label>Numéro agent WhatsApp</label>
+          <input type="tel" id="cfg-agent-tel" placeholder="+212XXXXXXXXX"
+            style="width:100%;padding:10px 12px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:13px;font-family:'DM Mono',monospace;color:var(--text);outline:none">
+        </div>
+        <button class="btn" onclick="saveWebhook()" style="background:rgba(46,204,138,0.08);color:var(--green);border:0.5px solid rgba(46,204,138,0.2)">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Enregistrer
+        </button>
+        <button class="btn" onclick="testWebhook()" style="margin-top:6px;background:rgba(79,138,255,0.08);color:var(--accent);border:0.5px solid rgba(79,138,255,0.2)">
+          <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          Tester la connexion
+        </button>
+      </div>
+
       <div class="section-t">Sécurité</div>
       <div class="card">
         <div id="pin-section">
@@ -888,7 +930,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
       <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Bénéfices
     </button>
     <button class="nav-btn" id="nav-treo" onclick="showPage('treo')">
-      <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>Trésor
+      <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>Tréso
     </button>
     <button class="nav-btn" id="nav-analyse" onclick="showPage('analyse')">
       <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Analyses
@@ -1263,7 +1305,51 @@ function isPWA(){
 // Export universel : télécharge en Safari, ouvre nouvel onglet en PWA
 
 // ── STOCKAGE ──────────────────────────────────────────────
-function save(tx){const t=getTxs();t.unshift(tx);localStorage.setItem('tp_txs',JSON.stringify(t));renderDash();}
+function save(tx){const t=getTxs();t.unshift(tx);localStorage.setItem('tp_txs',JSON.stringify(t));renderDash();sendWebhook('transaction',tx);}
+
+// ── WEBHOOK N8N ──────────────────────────────────────────
+function getWebhookCfg(){
+  try{return JSON.parse(localStorage.getItem('tp_webhook'))||{};}catch{return{};}
+}
+function saveWebhook(){
+  const cfg={url:(S('cfg-webhook').value||'').trim(),agentTel:(S('cfg-agent-tel').value||'').trim()};
+  localStorage.setItem('tp_webhook',JSON.stringify(cfg));
+  haptic();toast('✓ Webhook enregistré');
+}
+function loadWebhook(){
+  const cfg=getWebhookCfg();
+  if(S('cfg-webhook'))S('cfg-webhook').value=cfg.url||'';
+  if(S('cfg-agent-tel'))S('cfg-agent-tel').value=cfg.agentTel||'';
+}
+function testWebhook(){
+  const cfg=getWebhookCfg();
+  if(!cfg.url){toast("Configure d'abord le webhook URL",'var(--amber)');return;}
+  sendWebhook('test',{message:'Connexion SpeedCash OK',date:new Date().toISOString()});
+  toast('✓ Test envoyé — vérifie dans n8n');
+}
+function sendWebhook(event,data){
+  const cfg=getWebhookCfg();
+  if(!cfg.url)return;
+  const now=new Date();
+  const txs=getTxs();
+  const txsMois=txs.filter(t=>t.type==='envoi'&&new Date(t.date).getMonth()===now.getMonth()&&new Date(t.date).getFullYear()===now.getFullYear());
+  const payload={
+    event,
+    data,
+    app:'SpeedCash',
+    timestamp:now.toISOString(),
+    agentTel:cfg.agentTel||'',
+    soldes:JSON.parse(localStorage.getItem('tp_soldes')||'{}'),
+    stats:{
+      txCountTotal:txs.length,
+      txCountMois:txsMois.length,
+      benMoisMAD:txsMois.reduce((s,t)=>s+(t.benefice||0),0),
+      soldeCFA:parseFloat((JSON.parse(localStorage.getItem('tp_soldes')||'{}')).cfa)||0,
+      soldeMAD:parseFloat((JSON.parse(localStorage.getItem('tp_soldes')||'{}')).mad)||0
+    }
+  };
+  fetch(cfg.url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),mode:'no-cors'}).catch(()=>{});
+}
 function getTxs(){
   try{
     const txs=JSON.parse(localStorage.getItem('tp_txs'))||[];
@@ -2290,6 +2376,89 @@ function showWhatsAppBtn(type){
   S(id).style.display='block';
 }
 
+// ── SIMULATEUR DE RENTABILITÉ ─────────────────────────────
+function calculerRentabilite(){
+  const xof=parseFloat(S('renta-montant').value);
+  const el=S('renta-result');
+  if(!xof||xof<1000){el.innerHTML='';return;}
+  const p=P();
+  const pctLabel=fmt(p.fmali*100,1)+'%';
+
+  // 1. Envoi Mali
+  const suguM=sugu(xof);
+  const madBrutM=(xof+suguM)/p.taux;
+  const totalM=madBrutM*(1+p.ret+p.fmali);
+  const arrM=Math.ceil(totalM/5)*5;
+  const benM=madBrutM*p.fmali+(arrM-totalM);
+
+  // 2. Envoi Hors Mali
+  const madBrutH=xof/p.taux;
+  const totalH=madBrutH*(1+p.fautre);
+  const arrH=Math.ceil(totalH/5)*5;
+  const benH=madBrutH*p.fmali+(arrH-totalH);
+
+  // 3. Réception taux 61.5
+  const madR615=(xof*0.97)/61.5;
+  const benR615=xof-(madR615*p.taux);
+
+  // 4. Réception taux 61
+  const madR61=(xof*0.97)/61;
+  const benR61=xof-(madR61*p.taux);
+
+  // Classement
+  const rank=[
+    {l:'↓ Réception 61,5',mad:benR615/p.taux,f:benR615,detail:'Tu donnes '+fmt(madR615,2)+' MAD'},
+    {l:'↓ Réception 61',mad:benR61/p.taux,f:benR61,detail:'Tu donnes '+fmt(madR61,2)+' MAD'},
+    {l:'🇲🇱 Envoi Mali',mad:benM,f:benM*p.taux,detail:'Client paie '+fmt(arrM,2)+' MAD'},
+    {l:'🌍 Envoi Hors Mali',mad:benH,f:benH*p.taux,detail:'Client paie '+fmt(arrH,2)+' MAD'}
+  ].sort((a,b)=>b.mad-a.mad);
+
+  el.innerHTML=`
+    <div style="font-size:11px;color:var(--text3);margin-bottom:10px">AVEC ${fmt(xof)} F CFA</div>
+
+    <!-- Cartes détaillées -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;min-width:0">
+      <div style="background:var(--bg3);border-radius:var(--rs);padding:10px;border:0.5px solid rgba(46,204,138,0.2)">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:4px">🇲🇱 ENVOI MALI</div>
+        <div style="font-size:15px;font-weight:600;font-family:'DM Mono',monospace;color:var(--green)">+${fmt(benM,2)} MAD</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:3px">Client paie ${fmt(arrM,2)} MAD</div>
+        <div style="font-size:10px;color:var(--text3)">Sugu ${fmt(suguM)} F · Ret. ${fmt(p.ret*100,1)}%</div>
+      </div>
+      <div style="background:var(--bg3);border-radius:var(--rs);padding:10px;border:0.5px solid rgba(46,204,138,0.2)">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:4px">🌍 ENVOI HORS MALI</div>
+        <div style="font-size:15px;font-weight:600;font-family:'DM Mono',monospace;color:var(--green)">+${fmt(benH,2)} MAD</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:3px">Client paie ${fmt(arrH,2)} MAD</div>
+        <div style="font-size:10px;color:var(--text3)">Frais ${fmt(p.fautre*100,1)}%</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;min-width:0">
+      <div style="background:var(--bg3);border-radius:var(--rs);padding:10px;border:0.5px solid rgba(160,139,250,0.2)">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:4px">↓ RÉCEPTION ×61,5</div>
+        <div style="font-size:15px;font-weight:600;font-family:'DM Mono',monospace;color:var(--purple,#a78bfa)">+${fmt(benR615)} F</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:3px">≈ ${fmt(benR615/p.taux,2)} MAD</div>
+        <div style="font-size:10px;color:var(--text3)">Tu donnes ${fmt(madR615,2)} MAD</div>
+      </div>
+      <div style="background:var(--bg3);border-radius:var(--rs);padding:10px;border:0.5px solid rgba(160,139,250,0.2)">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:4px">↓ RÉCEPTION ×61</div>
+        <div style="font-size:15px;font-weight:600;font-family:'DM Mono',monospace;color:var(--purple,#a78bfa)">+${fmt(benR61)} F</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:3px">≈ ${fmt(benR61/p.taux,2)} MAD</div>
+        <div style="font-size:10px;color:var(--text3)">Tu donnes ${fmt(madR61,2)} MAD</div>
+      </div>
+    </div>
+
+    <!-- Classement -->
+    <div style="background:rgba(79,138,255,0.07);border:0.5px solid rgba(79,138,255,0.2);border-radius:var(--rs);padding:12px">
+      <div style="font-size:11px;color:var(--text3);letter-spacing:.3px;margin-bottom:8px">CLASSEMENT RENTABILITÉ</div>
+      ${rank.map((r,i)=>'<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;'+(i<3?'border-bottom:0.5px solid var(--border);':'')+'">'
+        +'<div style="display:flex;align-items:center;gap:8px">'
+        +'<div style="width:22px;height:22px;border-radius:50%;background:'+(i===0?'var(--green)':'var(--bg3)')+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:'+(i===0?'#fff':'var(--text3)')+';flex-shrink:0">'+(i+1)+'</div>'
+        +'<div><div style="font-size:13px;color:var(--text2)">'+r.l+'</div><div style="font-size:10px;color:var(--text3)">'+r.detail+'</div></div>'
+        +'</div>'
+        +'<span style="font-size:14px;font-weight:600;font-family:DM Mono,monospace;color:'+(i===0?'var(--green)':'var(--text2)')+'">+'+fmt(r.mad,2)+' MAD</span>'
+        +'</div>').join('')}
+    </div>`;
+}
+
 function genWhatsApp(type){
   let msg='';
   const ref='TP-'+Date.now().toString().slice(-6);
@@ -2526,6 +2695,14 @@ function renderBrouillon(){
   const benNet=benBase+benManuel;
   const benEnvois=benNet+arrondisTotal;
 
+  // Bénéfice réceptions (CFA, injecté dans la poche CFA)
+  let recepFilt=txs.filter(t=>t.type==='recep');
+  if(brouillonFilter==='mois') recepFilt=recepFilt.filter(t=>{const d=new Date(t.date);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
+  else if(brouillonFilter==='semaine'){const lim=new Date(now-7*86400000);recepFilt=recepFilt.filter(t=>new Date(t.date)>=lim);}
+  const benRecepXof=recepFilt.reduce((s,t)=>s+(t.benefice||0),0);
+  const benRecepMAD=benRecepXof/TAUX;
+  const totalGlobalMAD=benEnvois+benRecepMAD;
+
   // Lignes à afficher (manuels uniquement — les tx sont résumées dans les totaux)
   el.innerHTML=`
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;min-width:0">
@@ -2545,6 +2722,16 @@ function renderBrouillon(){
       <div class="br" style="margin-top:4px"><span class="bl" style="color:var(--text3)">= Bénéfice net</span><span style="font-family:'DM Mono',monospace;color:var(--green);font-size:13px">+${fmt(benNet,2)} MAD</span></div>
       <div class="br"><span class="bl" style="color:var(--text3)">+ Arrondis agent</span><span style="font-family:'DM Mono',monospace;color:var(--amber);font-size:13px">+${fmt(arrondisTotal,2)} MAD</span></div>
       <div style="font-size:12px;color:var(--text3);margin-top:6px;border-top:0.5px solid var(--border);padding-top:6px">≈ ${fmt(benEnvois*TAUX)} F CFA</div>
+    </div>
+    <!-- Bénéfice réceptions -->
+    <div style="background:rgba(160,139,250,0.07);border:0.5px solid rgba(160,139,250,0.2);border-radius:var(--rs);padding:12px;margin-bottom:10px">
+      <div class="br"><span class="bl" style="font-size:11px;letter-spacing:.4px;text-transform:uppercase;color:var(--text3)">Bénéfice réceptions</span><span style="font-size:16px;font-weight:600;font-family:'DM Mono',monospace;color:var(--purple,#a78bfa)">${fmt(benRecepXof)} F</span></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">≈ ${fmt(benRecepMAD,2)} MAD · injecté dans ta poche CFA</div>
+    </div>
+    <!-- Total global -->
+    <div style="background:rgba(79,138,255,0.07);border:0.5px solid rgba(79,138,255,0.2);border-radius:var(--rs);padding:12px;margin-bottom:10px">
+      <div class="br"><span class="bl" style="font-size:11px;letter-spacing:.4px;text-transform:uppercase;color:var(--text3)">Total bénéfice global</span><span class="bv" style="font-size:20px;color:var(--accent)">${fmt(totalGlobalMAD,2)} MAD</span></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">envois (${fmt(benEnvois,2)} MAD) + réceptions (${fmt(benRecepMAD,2)} MAD)</div>
     </div>
     ${bFilt.length>0?`<div>${bFilt.map(x=>{
       const isArr=x.source==='arrondi';
@@ -2825,6 +3012,7 @@ function loadSettings(){
   S('cfg-fom').value=  cfg.fom   ||(OM*100);
   S('cfg-ret').value=  cfg.ret   ||(RET*100);
   S('btn-remove-pin').style.display=localStorage.getItem('tp_pin')?'block':'none';
+  loadWebhook();
 }
 
 // ── PIN ───────────────────────────────────────────────────
@@ -3196,7 +3384,7 @@ function genererPDF(){
 </style></head><body>
 
 ${isAgent?`
-<h1>📋 Récaputilatif des transactions </h1>
+<h1>📋 Récap agent</h1>
 <div class="meta">
   <span>📅 Du ${fmtDate(debut)} au ${fmtDate(fin)}</span>
   <span>🔢 ${txs.length} transactions</span>
