@@ -1466,8 +1466,11 @@ function sendWebhook(event,data){
     if(event==='test')toast('✓ Test envoyé à n8n');
   }).catch(e=>{
     // Retry sans CORS si échec
-    fetch(cfg.url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),mode:'no-cors'}).catch(()=>{});
-    if(event==='test')toast('✓ Test envoyé (mode alternatif)');
+    fetch(cfg.url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),mode:'no-cors'}).then(()=>{
+      if(event==='test')toast('✓ Test envoyé (mode alternatif)');
+    }).catch(()=>{
+      if(event==='test')toast('Erreur — vérifie le webhook URL','var(--red)');
+    });
   });
 }
 function getTxs(){
