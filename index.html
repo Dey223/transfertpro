@@ -1462,15 +1462,11 @@ function sendWebhook(event,data){
       soldeMAD:parseFloat((JSON.parse(localStorage.getItem('tp_soldes')||'{}')).mad)||0
     }
   };
-  fetch(cfg.url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).then(r=>{
+  // Envoyer en text/plain pour éviter le preflight CORS
+  fetch(cfg.url,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)}).then(r=>{
     if(event==='test')toast('✓ Test envoyé à n8n');
   }).catch(e=>{
-    // Retry sans CORS si échec
-    fetch(cfg.url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),mode:'no-cors'}).then(()=>{
-      if(event==='test')toast('✓ Test envoyé (mode alternatif)');
-    }).catch(()=>{
-      if(event==='test')toast('Erreur — vérifie le webhook URL','var(--red)');
-    });
+    if(event==='test')toast('Erreur webhook — vérifie l\'URL','var(--red)');
   });
 }
 function getTxs(){
