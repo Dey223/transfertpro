@@ -200,7 +200,10 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
   <div class="topbar">
     <div class="logo">
       <div class="logo-icon">💸</div>
-      SpeedCash
+      <div>
+        <div>SpeedCash</div>
+        <div id="header-subtitle" style="font-size:11px;font-weight:400;color:var(--text3)">Simulateur</div>
+      </div>
     </div>
     <div style="text-align:right">
       <div style="font-size:10px;color:var(--text3);letter-spacing:.5px">VERSION</div>
@@ -213,8 +216,8 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
     <!-- ══ SIMULATEUR ══ -->
     <div class="page active" id="page-sim">
       <div class="seg" style="margin-top:14px">
-        <button class="seg-btn on" id="btn-envoi" onclick="setMode('envoi')">↑ Maroc → Mali/Pays</button>
-        <button class="seg-btn" id="btn-recep" onclick="setMode('recep')">↓ Mali → Maroc</button>
+        <button class="seg-btn on" id="btn-envoi" onclick="setMode('envoi')">↑ Envoi</button>
+        <button class="seg-btn" id="btn-recep" onclick="setMode('recep')">↓ Réception</button>
       </div>
 
       <!-- ─ ENVOI ─ -->
@@ -308,10 +311,15 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
             </div>
           </div>
 
+          <!-- Sélection agent -->
+          <select id="select-agent-envoi" style="width:100%;margin-top:8px;padding:10px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:13px;color:var(--text);outline:none;font-family:'DM Sans',sans-serif;display:none">
+            <option value="">— Aucun agent —</option>
+          </select>
+
           <!-- Bouton WhatsApp -->
           <div id="whatsapp-btn-envoi" style="display:none;margin-top:8px">
             <button onclick="genWhatsApp('envoi')" style="width:100%;padding:11px;border-radius:var(--rs);border:0.5px solid rgba(37,211,102,0.4);background:rgba(37,211,102,0.08);color:#25D366;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:7px">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.56 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 10a16 16 0 0 0 5.91 5.91l.72-.72a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l4.9-1.3A10 10 0 1 0 12 2zm0 18.5a8.5 8.5 0 0 1-4.3-1.2l-.3-.2-3.1.8.8-3-.2-.3A8.5 8.5 0 1 1 12 20.5z"/></svg>
               Copier message client WhatsApp
             </button>
           </div>
@@ -325,11 +333,6 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
       <!-- ─ RÉCEPTION ─ -->
       <div id="sim-recep" style="display:none">
         <div class="card">
-          <div class="card-title">Taux de réception</div>
-          <div class="seg">
-            <button class="seg-btn on" id="taux-std" onclick="setTaux(61.5)">Standard — 61,5</button>
-            <button class="seg-btn" id="taux-pref" onclick="setTaux(61)">Préférentiel — 61</button>
-          </div>
           <div class="card-title">Sens</div>
           <div class="seg">
             <button class="seg-btn on" id="sens-r-xof" onclick="setSensRecep('xof')">Il dépose X F → MAD ?</button>
@@ -386,30 +389,23 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
           <!-- Bouton WhatsApp réception -->
           <div id="whatsapp-btn-recep" style="display:none;margin-top:8px">
             <button onclick="genWhatsApp('recep')" style="width:100%;padding:11px;border-radius:var(--rs);border:0.5px solid rgba(37,211,102,0.4);background:rgba(37,211,102,0.08);color:#25D366;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:7px">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.56 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 10a16 16 0 0 0 5.91 5.91l.72-.72a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l4.9-1.3A10 10 0 1 0 12 2zm0 18.5a8.5 8.5 0 0 1-4.3-1.2l-.3-.2-3.1.8.8-3-.2-.3A8.5 8.5 0 1 1 12 20.5z"/></svg>
               Copier message client WhatsApp
             </button>
+          </div>
+
+          <!-- Checkbox agent réception -->
+          <div id="agent-row-recep" class="chk-row" style="margin-top:10px" onclick="toggleAgentRecep()">
+            <div class="chk-box" id="chk-agentr-box">
+              <svg id="chk-agentr-ico" viewBox="0 0 24 24" style="display:none;width:11px;height:11px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <span style="font-size:12px;color:var(--text2)">Par <span style="color:var(--accent)">l'agent</span></span>
           </div>
 
           <button class="btn btn-primary" onclick="validerRecep()">
             <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Enregistrer
           </button>
         </div>
-      </div>
-
-      <!-- SIMULATEUR DE RENTABILITÉ -->
-      <div class="section-t" style="margin-top:20px">Simulateur de rentabilité</div>
-      <div class="card" style="padding:14px 16px">
-        <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6">
-          "J'ai X CFA — combien je gagne selon le pays et le type ?"
-        </div>
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
-          <input type="number" id="renta-montant" inputmode="numeric" placeholder="Ex: 500000"
-            style="flex:1;padding:11px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:16px;font-family:'DM Mono',monospace;color:var(--text);outline:none;-webkit-appearance:none"
-            oninput="calculerRentabilite()">
-          <span style="font-size:13px;color:var(--text2)">F CFA</span>
-        </div>
-        <div id="renta-result"></div>
       </div>
     </div>
 
@@ -612,21 +608,14 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
           <option value="mois">📈 Rapport mensuel</option>
         </select>
         <button onclick="envoyerRapportWA()" class="btn" style="background:rgba(37,211,102,0.08);color:#25D366;border:0.5px solid rgba(37,211,102,0.25)">
-          <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.56 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 10a16 16 0 0 0 5.91 5.91l.72-.72a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l4.9-1.3A10 10 0 1 0 12 2z"/></svg>
           Envoyer via n8n → WhatsApp
         </button>
       </div>
 
       <div class="section-t">Paramètres actifs</div>
       <div class="card" style="padding:14px 16px">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px">
-          <div><div style="color:var(--text3);font-size:11px;margin-bottom:3px">Taux envoi</div><div style="font-family:'DM Mono',monospace;color:var(--accent)" id="info-taux">1 MAD = 60 F</div></div>
-          <div><div style="color:var(--text3);font-size:11px;margin-bottom:3px">Taux réception</div><div style="font-family:'DM Mono',monospace;color:var(--accent)">61 / 61,5 F</div></div>
-          <div><div style="color:var(--text3);font-size:11px;margin-bottom:3px">Mes frais Mali</div><div style="font-family:'DM Mono',monospace;color:var(--green)" id="info-fmali">4%</div></div>
-          <div><div style="color:var(--text3);font-size:11px;margin-bottom:3px">Frais hors Mali</div><div style="font-family:'DM Mono',monospace;color:var(--amber)" id="info-fautre">5,5% (4%+1,5%OM)</div></div>
-          <div><div style="color:var(--text3);font-size:11px;margin-bottom:3px">Retrait Mali</div><div style="font-family:'DM Mono',monospace;color:var(--amber)" id="info-ret">1%</div></div>
-          <div><div style="color:var(--text3);font-size:11px;margin-bottom:3px">Réception ×0,97</div><div style="font-family:'DM Mono',monospace;color:var(--green)">3%</div></div>
-        </div>
+        <div id="params-actifs" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;font-size:13px"></div>
       </div>
     </div>
 
@@ -802,6 +791,21 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
         <div id="marge-taux-result"></div>
       </div>
 
+      <!-- SIMULATEUR DE RENTABILITÉ -->
+      <div class="section-t" style="margin-top:20px">Simulateur de rentabilité</div>
+      <div class="card" style="padding:14px 16px">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6">
+          "J'ai X CFA — combien je gagne selon le pays et le type ?"
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+          <input type="number" id="renta-montant" inputmode="numeric" placeholder="Ex: 500000"
+            style="flex:1;padding:11px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:16px;font-family:'DM Mono',monospace;color:var(--text);outline:none;-webkit-appearance:none"
+            oninput="calculerRentabilite()">
+          <span style="font-size:13px;color:var(--text2)">F CFA</span>
+        </div>
+        <div id="renta-result"></div>
+      </div>
+
       <!-- Analyses prédictives -->
       <div class="section-t">Analyses prédictives</div>
       <div id="analyse-container">
@@ -841,32 +845,66 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
       </div>
 
       <div class="section-t">Paramètres de calcul</div>
-      <div class="card">
-        <div class="field">
-          <label>Taux envoi (1 MAD = X F)</label>
-          <input type="number" id="cfg-taux" inputmode="decimal" placeholder="60" style="font-family:'DM Mono',monospace">
+      <div class="card" style="padding:16px">
+        <!-- Taux -->
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px;letter-spacing:.4px;text-transform:uppercase">Taux de change</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+          <div class="field" style="margin:0">
+            <label style="font-size:11px">Taux sortant (envoi)</label>
+            <input type="number" id="cfg-taux" inputmode="decimal" placeholder="60" style="font-family:'DM Mono',monospace;font-size:16px;text-align:center;padding:12px">
+          </div>
+          <div class="field" style="margin:0">
+            <label style="font-size:11px">Taux entrant (réception)</label>
+            <select id="cfg-taux-recep" style="width:100%;padding:12px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:16px;font-family:'DM Mono',monospace;color:var(--text);outline:none;text-align:center">
+              <option value="61">61</option>
+              <option value="61.5" selected>61,5</option>
+              <option value="62">62</option>
+            </select>
+          </div>
         </div>
-        <div class="field">
-          <label>Mes frais Mali (%)</label>
-          <input type="number" id="cfg-fmali" inputmode="decimal" placeholder="4">
+        <!-- Frais -->
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px;letter-spacing:.4px;text-transform:uppercase">Frais</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <div class="field" style="margin:0">
+            <label style="font-size:11px">Mes frais Mali</label>
+            <div style="position:relative">
+              <input type="number" id="cfg-fmali" inputmode="decimal" placeholder="4" style="font-family:'DM Mono',monospace;padding-right:24px">
+              <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px">%</span>
+            </div>
+          </div>
+          <div class="field" style="margin:0">
+            <label style="font-size:11px">Frais OM hors Mali</label>
+            <div style="position:relative">
+              <input type="number" id="cfg-fom" inputmode="decimal" placeholder="1.5" style="font-family:'DM Mono',monospace;padding-right:24px">
+              <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px">%</span>
+            </div>
+          </div>
         </div>
-        <div class="field">
-          <label>Frais OM hors Mali (%)</label>
-          <input type="number" id="cfg-fom" inputmode="decimal" placeholder="1.5">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+          <div class="field" style="margin:0">
+            <label style="font-size:11px">Retrait Mali</label>
+            <div style="position:relative">
+              <input type="number" id="cfg-ret" inputmode="decimal" placeholder="1" style="font-family:'DM Mono',monospace;padding-right:24px">
+              <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px">%</span>
+            </div>
+          </div>
+          <div class="field" style="margin:0">
+            <label style="font-size:11px">Frais réception</label>
+            <div style="position:relative">
+              <input type="number" id="cfg-frecep" inputmode="decimal" placeholder="3" style="font-family:'DM Mono',monospace;padding-right:24px">
+              <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px">%</span>
+            </div>
+          </div>
         </div>
-        <div class="field">
-          <label>Retrait Mali (%)</label>
-          <input type="number" id="cfg-ret" inputmode="decimal" placeholder="1">
-        </div>
-        <button class="btn btn-primary" onclick="saveParams()" style="margin-top:4px">
-          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Enregistrer les paramètres
+        <button class="btn btn-primary" onclick="saveParams()">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Enregistrer
         </button>
       </div>
 
-      <div class="section-t">Automatisations (n8n)</div>
+      <div class="section-t">WhatsApp & n8n</div>
       <div class="card">
         <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.6">
-          Connecte ton app à n8n pour les alertes WhatsApp automatiques.
+          Configuration des alertes WhatsApp via n8n.
         </div>
         <div class="field">
           <label>Webhook URL (n8n)</label>
@@ -874,18 +912,58 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
             style="width:100%;padding:10px 12px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:13px;font-family:'DM Mono',monospace;color:var(--text);outline:none">
         </div>
         <div class="field">
+          <label>Mon numéro WhatsApp (réception alertes)</label>
+          <input type="tel" id="cfg-my-tel" placeholder="+22394262732"
+            style="width:100%;padding:10px 12px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:13px;font-family:'DM Mono',monospace;color:var(--text);outline:none">
+        </div>
+        <div class="field">
           <label>Numéro agent WhatsApp</label>
-          <input type="tel" id="cfg-agent-tel" placeholder="+212XXXXXXXXX"
+          <input type="tel" id="cfg-agent-tel" placeholder="+212774127090"
             style="width:100%;padding:10px 12px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:13px;font-family:'DM Mono',monospace;color:var(--text);outline:none">
         </div>
         <button class="btn" onclick="saveWebhook()" style="background:rgba(46,204,138,0.08);color:var(--green);border:0.5px solid rgba(46,204,138,0.2)">
           <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
           Enregistrer
         </button>
-        <button class="btn" onclick="testWebhook()" style="margin-top:6px;background:rgba(79,138,255,0.08);color:var(--accent);border:0.5px solid rgba(79,138,255,0.2)">
-          <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          Tester la connexion
+      </div>
+
+      <!-- AGENTS -->
+      <div class="section-t">Agents</div>
+      <div class="card" style="padding:14px 16px">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.6">
+          Gère plusieurs agents. Chaque transaction peut être assignée à un agent.
+        </div>
+        <div id="agents-list" style="margin-bottom:12px"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <input type="text" id="new-agent-nom" placeholder="Nom"
+            style="padding:10px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:13px;color:var(--text);outline:none;font-family:'DM Sans',sans-serif">
+          <input type="tel" id="new-agent-tel" placeholder="+212..."
+            style="padding:10px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:13px;color:var(--text);outline:none;font-family:'DM Mono',monospace">
+        </div>
+        <input type="text" id="new-agent-zone" placeholder="Zone (ex: Casablanca, Rabat...)"
+          style="width:100%;padding:10px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:13px;color:var(--text);outline:none;font-family:'DM Sans',sans-serif;margin-bottom:8px">
+        <button class="btn" onclick="ajouterAgent()" style="background:rgba(46,204,138,0.08);color:var(--green);border:0.5px solid rgba(46,204,138,0.2)">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Ajouter un agent
         </button>
+      </div>
+
+      <!-- BACKUP APPWRITE -->
+      <div class="section-t">Sauvegarde cloud (Appwrite)</div>
+      <div class="card" style="padding:14px 16px">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.6">
+          Tes données sont sauvegardées automatiquement toutes les 5 transactions. Tu peux aussi forcer un backup ou restaurer.
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn" onclick="backupToAppwrite().then(()=>toast('✅ Backup envoyé'))" style="flex:1;background:rgba(46,204,138,0.08);color:var(--green);border:0.5px solid rgba(46,204,138,0.2)">
+            <svg viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+            Sauvegarder
+          </button>
+          <button class="btn" onclick="restoreFromAppwrite()" style="flex:1;background:rgba(79,138,255,0.08);color:var(--accent);border:0.5px solid rgba(79,138,255,0.2)">
+            <svg viewBox="0 0 24 24"><polyline points="8 16 12 20 16 16"/><line x1="12" y1="12" x2="12" y2="20"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+            Restaurer
+          </button>
+        </div>
       </div>
 
       <div class="section-t">Sécurité</div>
@@ -933,16 +1011,16 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 
   <nav class="nav">
     <button class="nav-btn active" id="nav-sim" onclick="showPage('sim')">
-      <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>Simulateur
+      <svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><rect x="7" y="5" width="10" height="4" rx="1"/><text x="8" y="14" style="font:bold 5px sans-serif;fill:currentColor">+</text><text x="14" y="14" style="font:bold 5px sans-serif;fill:currentColor">−</text><text x="8" y="19" style="font:bold 5px sans-serif;fill:currentColor">×</text><text x="14" y="19" style="font:bold 5px sans-serif;fill:currentColor">=</text></svg>Simulateur
     </button>
     <button class="nav-btn" id="nav-hist" onclick="showPage('hist')">
       <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Historique
     </button>
     <button class="nav-btn" id="nav-dash" onclick="showPage('dash')">
-      <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Bénéfices
+      <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Bénéfices
     </button>
     <button class="nav-btn" id="nav-treo" onclick="showPage('treo')">
-      <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>Tréso
+      <svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/><circle cx="18" cy="14" r="1.5"/><path d="M6 6V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2"/></svg>Tréso
     </button>
     <button class="nav-btn" id="nav-analyse" onclick="showPage('analyse')">
       <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Analyses
@@ -954,10 +1032,113 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 </div>
 
 <script>
+// ── APPWRITE CONFIG ──────────────────────────────────────
+const AW_ENDPOINT='https://fra.cloud.appwrite.io/v1';
+const AW_PROJECT='6a1c5772000195a53f31';
+const AW_DB='speedcash-db';
+
+function awFetch(path,method,body){
+  return fetch(AW_ENDPOINT+path,{
+    method:method||'GET',
+    headers:{'Content-Type':'application/json','X-Appwrite-Project':AW_PROJECT},
+    body:body?JSON.stringify(body):undefined
+  }).then(r=>r.json()).catch(e=>{console.warn('Appwrite:',e);return null;});
+}
+
+// Backup vers Appwrite
+async function backupToAppwrite(){
+  try{
+    const txs=getTxs();
+    const data={
+      txs,
+      contacts:JSON.parse(localStorage.getItem('tp_contacts')||'[]'),
+      brouillon:JSON.parse(localStorage.getItem('tp_brouillon')||'[]'),
+      agent:JSON.parse(localStorage.getItem('tp_agent')||'[]'),
+      cfg:JSON.parse(localStorage.getItem('tp_cfg')||'{}'),
+      objectif:JSON.parse(localStorage.getItem('tp_objectif')||'{}'),
+      soldes:JSON.parse(localStorage.getItem('tp_soldes')||'{}'),
+      agents:JSON.parse(localStorage.getItem('tp_agents_list')||'[]')
+    };
+    const res=await awFetch('/databases/'+AW_DB+'/collections/backups/documents','POST',{
+      documentId:'unique()',
+      data:{
+        backupDate:new Date().toISOString(),
+        dataJson:JSON.stringify(data),
+        txCount:txs.length,
+        source:'auto'
+      }
+    });
+    if(res&&res.$id)console.log('💾 Backup OK —',txs.length,'tx');
+    else console.warn('Backup échoué:',res);
+  }catch(e){console.warn('Backup échoué:',e);}
+}
+
+// Sync transaction vers Appwrite
+async function syncTxToAppwrite(tx){
+  try{
+    await awFetch('/databases/'+AW_DB+'/collections/transactions/documents','POST',{
+      documentId:'unique()',
+      data:{
+        txDate:tx.date||new Date().toISOString(),
+        txType:tx.type||'envoi',
+        beneficiaire:tx.beneficiaire||'Anonyme',
+        destination:tx.destination||'',
+        montantXof:tx.montantXof||0,
+        montantMAD:tx.montantMAD||0,
+        benefice:tx.benefice||0,
+        gainArrondi:tx.gainArrondi||0,
+        gereParAgent:!!tx.gereParAgent,
+        viaAssoc:!!tx.viaAssoc,
+        fondSoutien:!!tx.fondSoutien,
+        taux:tx.taux||0,
+        devise:tx.devise||'MAD',
+        note:tx.note||'',
+        agentId:tx.agentId||'',
+        localId:String(tx.id||'')
+      }
+    });
+  }catch(e){console.warn('Sync tx échoué:',e);}
+}
+
+// Restaurer depuis Appwrite
+async function restoreFromAppwrite(){
+  try{
+    const res=await awFetch('/databases/'+AW_DB+'/collections/backups/documents?queries[]=orderDesc("backupDate")&queries[]=limit(1)','GET');
+    if(!res||!res.documents||!res.documents.length){toast('Aucun backup trouvé','var(--amber)');return;}
+    const backup=res.documents[0];
+    const data=JSON.parse(backup.dataJson);
+    if(!confirm('Restaurer le backup du '+new Date(backup.backupDate).toLocaleDateString('fr-FR')+' ('+backup.txCount+' transactions) ?'))return;
+    if(data.txs)localStorage.setItem('tp_txs',JSON.stringify(data.txs));
+    if(data.contacts)localStorage.setItem('tp_contacts',JSON.stringify(data.contacts));
+    if(data.brouillon)localStorage.setItem('tp_brouillon',JSON.stringify(data.brouillon));
+    if(data.agent)localStorage.setItem('tp_agent',JSON.stringify(data.agent));
+    if(data.cfg)localStorage.setItem('tp_cfg',JSON.stringify(data.cfg));
+    if(data.objectif)localStorage.setItem('tp_objectif',JSON.stringify(data.objectif));
+    if(data.soldes)localStorage.setItem('tp_soldes',JSON.stringify(data.soldes));
+    if(data.agents)localStorage.setItem('tp_agents_list',JSON.stringify(data.agents));
+    renderDash();renderHist();
+    haptic();toast('✅ Backup restauré — '+backup.txCount+' transactions');
+  }catch(e){toast('Erreur restauration: '+e.message,'var(--red)');}
+}
+
 // ── CONSTANTES ────────────────────────────────────────────
 const TAUX=60,F_MALI=0.04,F_AUTRE=0.055,F_RECEP=0.03,RET=0.01,FOND=0.01,OM=0.015;
 
 // ── ÉTAT ──────────────────────────────────────────────────
+let tauxEntrant=61.5;
+let agentRecep=false;
+function toggleAgentRecep(){
+  agentRecep=!agentRecep;
+  const box=S('chk-agentr-box'),ico=S('chk-agentr-ico'),row=S('agent-row-recep');
+  box.style.background=agentRecep?'var(--accent)':'transparent';
+  box.style.borderColor=agentRecep?'var(--accent)':'var(--border2)';
+  ico.style.display=agentRecep?'block':'none';
+  row.style.borderColor=agentRecep?'var(--accent)':'var(--border2)';
+}
+function setTauxEntrant(v){
+  tauxEntrant=parseFloat(v);
+  tauxR=parseFloat(v);
+}
 let mode='envoi',fondActif=false,dest='mali',paysLabel='🇧🇫 Burkina',sensEnvoi='xof';
 let dernierBrut=0,tauxR=61.5,sensR='xof';
 let DR={madBrut:0,xofDepot:0,xofBrut:0,madVoulu:0};
@@ -1178,7 +1359,7 @@ function validerEnvoi(){
     save({id:Date.now(),date:new Date().toISOString(),beneficiaire:benef,type:'envoi',
       destination:dest==='mali'?'🇲🇱 Mali':paysLabel,
       montantXof:xofNet2,montantMAD:mad,fondSoutien:false,
-      gainArrondi:0,viaAssoc:false,gereParAgent,benefice:benefice2,devise:'MAD'});
+      gainArrondi:0,viaAssoc:false,gereParAgent,agentId:S('select-agent-envoi')?.value||'',benefice:benefice2,devise:'MAD'});
     S('montant-emad').value='';hide('result-emad');
   } else {
     const xof=parseFloat(S('montant-xof').value),arr=parseFloat(S('montant-arrondi').value);
@@ -1190,7 +1371,7 @@ function validerEnvoi(){
     save({id:Date.now(),date:new Date().toISOString(),beneficiaire:benef,type:'envoi',
       destination:dest==='mali'?'🇲🇱 Mali':paysLabel,
       montantXof:xof,montantMAD:arr,fondSoutien:fondActif&&dest==='mali',
-      gainArrondi,viaAssoc,gereParAgent,benefice:ben,devise:'MAD'});
+      gainArrondi,viaAssoc,gereParAgent,agentId:S('select-agent-envoi')?.value||'',benefice:ben,devise:'MAD'});
     S('montant-xof').value='';S('montant-arrondi').value='';
     hide('result-envoi');hide('arrondi-section');hide('whatsapp-btn-envoi');
     dernierBrut=0;viaAssoc=false;gereParAgent=true;
@@ -1213,8 +1394,6 @@ function validerEnvoi(){
 // ── TAUX / SENS RÉCEPTION ─────────────────────────────────
 function setTaux(t){
   tauxR=t;
-  S('taux-std').className='seg-btn'+(t===61.5?' on':'');
-  S('taux-pref').className='seg-btn'+(t===61?' on':'');
   hide('result-recep');calculerRecep();
 }
 function setSensRecep(s){
@@ -1232,7 +1411,7 @@ function calculerRecep(){
   if(sensR==='xof'){
     const xof=parseFloat(S('recep-xof').value);
     if(!xof||xof<100){hide('result-recep');return;}
-    const xofNet=xof*(1-F_RECEP),madExact=xofNet/tauxR;
+    const p=P(),xofNet=xof*(1-p.frecep),madExact=xofNet/tauxR;
     DR.madBrut=madExact;DR.xofDepot=xof;
     S('result-recep').innerHTML=`
       <div class="rr"><span class="rl">Dépôt au Mali</span><span class="rv">${fmt(xof)} F</span></div>
@@ -1244,12 +1423,12 @@ function calculerRecep(){
   } else {
     const mad=parseFloat(S('recep-mad').value);
     if(!mad||mad<=0){hide('result-recep');return;}
-    const xofBase=mad*tauxR,xofBrut=xofBase*1.03;
+    const xofBase=mad*tauxR,xofBrut=xofBase*(1+P().frecep);
     DR.xofBrut=xofBrut;DR.madVoulu=mad;
     S('result-recep').innerHTML=`
       <div class="rr"><span class="rl">MAD à remettre</span><span class="rv">${fmt(mad,2)} MAD</span></div>
       <div class="rr"><span class="rl">× ${tauxR}</span><span class="rv">${fmt(xofBase)} F</span></div>
-      <div class="rr"><span class="rl">+ Mes frais 3%</span><span class="rv g">+ ${fmt(xofBase*F_RECEP)} F</span></div>
+      <div class="rr"><span class="rl">+ Mes frais ${fmt(P().frecep*100,1)}%</span><span class="rv g">+ ${fmt(xofBase*P().frecep)} F</span></div>
       <div class="rr"><span class="rl" style="font-weight:600;color:var(--text)">Dépôt exact</span><span class="rv" style="color:var(--text2)">${fmt(xofBrut)} F</span></div>`;
     show('result-recep');
     S('arr-xof').value=a50(xofBrut);show('aw-rmad');hide('ben-rmad');calculerArrondiRecep();
@@ -1298,12 +1477,14 @@ function validerRecep(){
   }
   save({id:Date.now(),date:new Date().toISOString(),beneficiaire:benef,type:'recep',
     destination:'🇲🇦 Maroc',montantXof:mXof,montantMAD:mMAD,taux:tauxR,
-    gereParAgent,benefice:ben,devise:'XOF'});
+    gereParAgent:agentRecep,benefice:ben,devise:'XOF'});
   saveContact(benef);
   S('recep-xof').value='';S('recep-mad').value='';
   S('arr-mad').value='';S('arr-xof').value='';S('benef-recep').value='';
   hide('result-recep');hide('aw-rxof');hide('aw-rmad');
 
+  agentRecep=false;
+  if(S('chk-agentr-box')){S('chk-agentr-box').style.background='transparent';S('chk-agentr-box').style.borderColor='var(--border2)';S('chk-agentr-ico').style.display='none';S('agent-row-recep').style.borderColor='var(--border2)';}
   DR={madBrut:0,xofDepot:0,xofBrut:0,madVoulu:0};
   blurAll();haptic();toast('✓ Transaction enregistrée');
   setTimeout(()=>showPage('hist'),300);
@@ -1317,14 +1498,14 @@ function isPWA(){
 // Export universel : télécharge en Safari, ouvre nouvel onglet en PWA
 
 // ── STOCKAGE ──────────────────────────────────────────────
-function save(tx){const t=getTxs();t.unshift(tx);localStorage.setItem('tp_txs',JSON.stringify(t));renderDash();sendWebhook('transaction',tx);}
+function save(tx){const t=getTxs();t.unshift(tx);localStorage.setItem('tp_txs',JSON.stringify(t));renderDash();sendWebhook('transaction',tx);syncTxToAppwrite(tx);if(t.length%5===0)backupToAppwrite();}
 
 // ── WEBHOOK N8N ──────────────────────────────────────────
 function getWebhookCfg(){
   try{return JSON.parse(localStorage.getItem('tp_webhook'))||{};}catch{return{};}
 }
 function saveWebhook(){
-  const cfg={url:(S('cfg-webhook').value||'').trim(),agentTel:(S('cfg-agent-tel').value||'').trim()};
+  const cfg={url:(S('cfg-webhook').value||'').trim(),agentTel:(S('cfg-agent-tel').value||'').trim(),myTel:(S('cfg-my-tel').value||'').trim()};
   localStorage.setItem('tp_webhook',JSON.stringify(cfg));
   haptic();toast('✓ Webhook enregistré');
 }
@@ -1332,6 +1513,7 @@ function loadWebhook(){
   const cfg=getWebhookCfg();
   if(S('cfg-webhook'))S('cfg-webhook').value=cfg.url||'';
   if(S('cfg-agent-tel'))S('cfg-agent-tel').value=cfg.agentTel||'';
+  if(S('cfg-my-tel'))S('cfg-my-tel').value=cfg.myTel||'';
 }
 function testWebhook(){
   const cfg=getWebhookCfg();
@@ -1453,6 +1635,7 @@ function sendWebhook(event,data){
     app:'SpeedCash',
     timestamp:now.toISOString(),
     agentTel:cfg.agentTel||'',
+    myTel:cfg.myTel||'',
     soldes:JSON.parse(localStorage.getItem('tp_soldes')||'{}'),
     stats:{
       txCountTotal:txs.length,
@@ -1573,6 +1756,7 @@ function setBrouillonFilter(f,btn){
 
 // ── SUPPRESSION ───────────────────────────────────────────
 function suppUne(id){
+  if(!confirm('Supprimer cette transaction ?'))return;
   saveTxs(getTxs().filter(t=>Number(t.id)!==Number(id)));
   renderHist();renderDash();
 }
@@ -1586,45 +1770,72 @@ function editerTx(id){
   overlay.id='edit-overlay';
   overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9998;display:flex;align-items:flex-end;justify-content:center';
   const d=new Date(t.date).toISOString().slice(0,16);
+  const isAgent=t.gereParAgent?'checked':'';
+  const isAssoc=t.viaAssoc?'checked':'';
+  const typeLabel=t.type==='envoi'?'↑ Envoi':'↓ Réception';
+  const destLabel=t.destination||'';
   overlay.innerHTML=`
-    <div style="background:var(--bg2);border-radius:var(--r) var(--r) 0 0;padding:20px;width:100%;max-width:430px;max-height:80vh;overflow-y:auto">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-        <div style="font-size:16px;font-weight:600">Modifier la transaction</div>
-        <button onclick="S('edit-overlay').remove()" style="border:none;background:transparent;color:var(--text2);font-size:22px;cursor:pointer;line-height:1">×</button>
+    <div style="background:var(--bg2);border-radius:var(--r) var(--r) 0 0;padding:20px;width:100%;max-width:430px;max-height:85vh;overflow-y:auto">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div>
+          <div style="font-size:16px;font-weight:600">Modifier</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px">${typeLabel} · ${destLabel}</div>
+        </div>
+        <button onclick="S('edit-overlay').remove()" style="border:none;background:transparent;color:var(--text2);font-size:22px;cursor:pointer;line-height:1;padding:4px 8px">×</button>
       </div>
+
       <div class="field">
         <label>Bénéficiaire</label>
         <input type="text" id="edit-benef" value="${t.beneficiaire||''}"
           style="width:100%;padding:11px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:15px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none">
       </div>
-      <div class="field">
-        <label>Montant XOF</label>
-        <input type="number" id="edit-xof" value="${t.montantXof||0}"
-          style="width:100%;padding:11px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:15px;font-family:'DM Mono',monospace;color:var(--text);outline:none;-webkit-appearance:none">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div class="field">
+          <label>Montant XOF</label>
+          <input type="number" id="edit-xof" value="${t.montantXof||0}" inputmode="numeric"
+            style="width:100%;padding:11px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:14px;font-family:'DM Mono',monospace;color:var(--text);outline:none;-webkit-appearance:none">
+        </div>
+        <div class="field">
+          <label>Montant MAD</label>
+          <input type="number" id="edit-mad" value="${t.montantMAD||0}" inputmode="decimal"
+            style="width:100%;padding:11px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:14px;font-family:'DM Mono',monospace;color:var(--text);outline:none;-webkit-appearance:none">
+        </div>
       </div>
-      <div class="field">
-        <label>Montant MAD</label>
-        <input type="number" id="edit-mad" value="${t.montantMAD||0}"
-          style="width:100%;padding:11px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:15px;font-family:'DM Mono',monospace;color:var(--text);outline:none;-webkit-appearance:none">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div class="field">
+          <label>Bénéfice (${t.type==='envoi'?'MAD':'F'})</label>
+          <input type="number" id="edit-ben" value="${t.benefice||0}" inputmode="decimal"
+            style="width:100%;padding:11px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:14px;font-family:'DM Mono',monospace;color:var(--text);outline:none;-webkit-appearance:none">
+        </div>
+        <div class="field">
+          <label>Date</label>
+          <input type="datetime-local" id="edit-date" value="${d}"
+            style="width:100%;padding:11px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:12px;color:var(--text);outline:none;font-family:'DM Mono',monospace">
+        </div>
       </div>
+
       <div class="field">
-        <label>Bénéfice (${t.type==='envoi'?'MAD':'F'})</label>
-        <input type="number" id="edit-ben" value="${t.benefice||0}"
-          style="width:100%;padding:11px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:15px;font-family:'DM Mono',monospace;color:var(--text);outline:none;-webkit-appearance:none">
-      </div>
-      <div class="field">
-        <label>Date & heure</label>
-        <input type="datetime-local" id="edit-date" value="${d}"
-          style="width:100%;padding:11px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:14px;color:var(--text);outline:none;font-family:'DM Mono',monospace">
-      </div>
-      <div class="field" style="margin-bottom:0">
         <label>Note</label>
         <input type="text" id="edit-note" value="${t.note||''}" placeholder="Note libre..."
           style="width:100%;padding:11px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none">
       </div>
-      <button onclick="sauvegarderEdit(${id})" class="btn btn-primary" style="margin-top:14px">
+
+      <div style="display:flex;gap:12px;margin:12px 0 16px;padding:12px;background:var(--bg3);border-radius:var(--rs);border:0.5px solid var(--border2)">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;font-size:13px;color:var(--text2)">
+          <input type="checkbox" id="edit-agent" ${isAgent} style="width:18px;height:18px;accent-color:var(--accent)">
+          Par l'agent
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;font-size:13px;color:var(--text2)">
+          <input type="checkbox" id="edit-assoc" ${isAssoc} style="width:18px;height:18px;accent-color:var(--amber)">
+          Via associé
+        </label>
+      </div>
+
+      <button onclick="sauvegarderEdit(${id})" class="btn btn-primary">
         <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><polyline points="20 6 9 17 4 12"/></svg>
-        Enregistrer les modifications
+        Enregistrer
       </button>
     </div>`;
   document.body.appendChild(overlay);
@@ -1640,6 +1851,8 @@ function sauvegarderEdit(id){
   txs[idx].benefice=parseFloat(S('edit-ben').value)||txs[idx].benefice;
   if(S('edit-date').value)txs[idx].date=new Date(S('edit-date').value).toISOString();
   txs[idx].note=S('edit-note').value.trim();
+  txs[idx].gereParAgent=S('edit-agent').checked;
+  txs[idx].viaAssoc=S('edit-assoc').checked;
   saveTxs(txs);
   S('edit-overlay').remove();
   renderHist();renderDash();
@@ -1815,7 +2028,8 @@ function renderHist(){
       :`<span class="badge b-r">↓ ${t.destination||'Maroc'} ×${t.taux||61.5}</span>`;
     const fondB=t.fondSoutien?'<span class="badge b-f">+fond</span>':'';
     const assocB=t.viaAssoc?'<span class="badge" style="background:rgba(240,165,0,0.1);color:var(--amber)">via associé</span>':'';
-    const agentB=t.gereParAgent?'<span class="badge" style="background:rgba(79,138,255,0.1);color:var(--accent)">agent</span>':'';
+    const _ag=t.agentId?getAgents().find(a=>a.id===t.agentId):null;
+    const agentB=t.gereParAgent?'<span class="badge" style="background:rgba(79,138,255,0.1);color:var(--accent)">'+(_ag?_ag.nom:'agent')+'</span>':'';
     const swipeHint=`<div style="position:absolute;right:14px;top:50%;transform:translateY(-50%);opacity:0.2;pointer-events:none">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
     </div>`;
@@ -1855,6 +2069,17 @@ function setDashPeriod(p,btn){
   btn.classList.add('on');renderDash();setTimeout(renderGraph,100);setTimeout(renderJours,50);
 }
 
+function renderParamsActifs(){
+  const p=P();
+  const el=S('params-actifs');if(!el)return;
+  el.innerHTML=`
+    <div><div style="color:var(--text3);font-size:10px;margin-bottom:3px">Taux envoi</div><div style="font-family:'DM Mono',monospace;color:var(--accent);font-size:14px">${p.taux}</div></div>
+    <div><div style="color:var(--text3);font-size:10px;margin-bottom:3px">Taux réception</div><div style="font-family:'DM Mono',monospace;color:var(--accent);font-size:14px">${tauxR}</div></div>
+    <div><div style="color:var(--text3);font-size:10px;margin-bottom:3px">Frais Mali</div><div style="font-family:'DM Mono',monospace;color:var(--green);font-size:14px">${fmt(p.fmali*100,1)}%</div></div>
+    <div><div style="color:var(--text3);font-size:10px;margin-bottom:3px">Frais hors Mali</div><div style="font-family:'DM Mono',monospace;color:var(--amber);font-size:14px">${fmt(p.fautre*100,1)}%</div></div>
+    <div><div style="color:var(--text3);font-size:10px;margin-bottom:3px">Retrait Mali</div><div style="font-family:'DM Mono',monospace;color:var(--text2);font-size:14px">${fmt(p.ret*100,1)}%</div></div>
+    <div><div style="color:var(--text3);font-size:10px;margin-bottom:3px">Frais réception</div><div style="font-family:'DM Mono',monospace;color:var(--green);font-size:14px">${fmt(p.frecep*100,1)}%</div></div>`;
+}
 function renderDash(){
   let txs=getTxs();
   const now=new Date();
@@ -1952,12 +2177,14 @@ function toggleJourDetail(id){
 
 // ── NAVIGATION ────────────────────────────────────────────
 function showPage(p){
+  const subtitles={sim:'Simulateur',hist:'Historique',dash:'Bénéfices',treo:'Trésorerie',analyse:'Analyses',settings:'Réglages'};
+  const h=S('header-subtitle');if(h)h.textContent=subtitles[p]||'';
   ['sim','hist','dash','treo','analyse','settings'].forEach(x=>{
     S('page-'+x).className='page'+(x===p?' active':'');
     S('nav-'+x).className='nav-btn'+(x===p?' active':'');
   });
   if(p==='hist')renderHist();
-  if(p==='dash'){renderDash();renderObjectif();setTimeout(renderGraph,100);setTimeout(renderJours,50);}
+  if(p==='dash'){renderDash();renderObjectif();renderParamsActifs();setTimeout(renderGraph,100);setTimeout(renderJours,50);}
   if(p==='treo'){loadSoldes();simulerLiquidation();renderAgent();renderMargeTaux();renderBrouillon();renderRecon();}
   if(p==='analyse'){renderRecon();renderMargeTaux();setTimeout(renderAnalyses,50);}
   if(p==='settings')loadSettings();
@@ -2471,6 +2698,55 @@ function importerSMS(type){
 let viaAssoc=false;
 let gereParAgent=true;
 
+// ── MULTI-AGENTS ─────────────────────────────────────────
+function getAgents(){try{return JSON.parse(localStorage.getItem('tp_agents_list'))||[];}catch{return[];}}
+function saveAgents(a){localStorage.setItem('tp_agents_list',JSON.stringify(a));}
+
+function ajouterAgent(){
+  const nom=S('new-agent-nom').value.trim();
+  const tel=S('new-agent-tel').value.trim();
+  const zone=S('new-agent-zone').value.trim();
+  if(!nom||!tel){toast('Nom et téléphone requis','var(--amber)');return;}
+  const agents=getAgents();
+  agents.push({id:'ag-'+Date.now(),nom,telephone:tel,zone,actif:true});
+  saveAgents(agents);
+  S('new-agent-nom').value='';S('new-agent-tel').value='';S('new-agent-zone').value='';
+  renderAgentsList();updateAgentDropdowns();
+  haptic();toast('✅ Agent ajouté : '+nom);
+  // Sync Appwrite
+  awFetch('/databases/'+AW_DB+'/collections/agents/documents','POST',{documentId:'unique()',data:{nom,telephone:tel,zone,actif:true}});
+}
+
+function suppAgent(id){
+  if(!confirm('Supprimer cet agent ?'))return;
+  saveAgents(getAgents().filter(a=>a.id!==id));
+  renderAgentsList();updateAgentDropdowns();
+  toast('Agent supprimé','var(--amber)');
+}
+
+function renderAgentsList(){
+  const el=S('agents-list');if(!el)return;
+  const agents=getAgents();
+  if(!agents.length){el.innerHTML='<div style="text-align:center;padding:12px;color:var(--text3);font-size:13px">Aucun agent configuré</div>';return;}
+  el.innerHTML=agents.map(a=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:0.5px solid var(--border)">
+      <div>
+        <div style="font-size:14px;font-weight:500">${a.nom}</div>
+        <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px">${a.telephone}${a.zone?' · '+a.zone:''}</div>
+      </div>
+      <div onclick="suppAgent('${a.id}')" style="font-size:14px;color:var(--red);cursor:pointer;padding:4px 8px">✕</div>
+    </div>`).join('');
+}
+
+function updateAgentDropdowns(){
+  const agents=getAgents();
+  const opts='<option value="">— Aucun agent —</option>'+agents.filter(a=>a.actif!==false).map(a=>`<option value="${a.id}">${a.nom}${a.zone?' ('+a.zone+')':''}</option>`).join('');
+  // Mettre à jour le dropdown envoi
+  const selE=S('select-agent-envoi');
+  if(selE){selE.innerHTML=opts;selE.style.display=agents.length?'block':'none';}
+}
+
+// Montrer/masquer le dropdown agent quand "par l'agent" est coché
 function toggleAgentEnvoi(){
   gereParAgent=!gereParAgent;
   const box=S('chk-agente-box'),ico=S('chk-agente-ico'),row=S('agent-row-envoi');
@@ -2478,6 +2754,9 @@ function toggleAgentEnvoi(){
   box.style.borderColor=gereParAgent?'var(--accent)':'var(--border2)';
   ico.style.display=gereParAgent?'block':'none';
   row.style.borderColor=gereParAgent?'var(--accent)':'var(--border2)';
+  // Afficher/masquer le dropdown agent
+  const sel=S('select-agent-envoi');
+  if(sel&&getAgents().length)sel.style.display=gereParAgent?'block':'none';
 }
 function toggleAssoc(){
   viaAssoc=!viaAssoc;
@@ -3108,6 +3387,7 @@ function P(){
     fmali: c.fmali ? c.fmali/100          : F_MALI,
     om:    c.fom   ? c.fom/100            : OM,
     ret:   c.ret   ? c.ret/100            : RET,
+    frecep:c.frecep? c.frecep/100         : F_RECEP,
     get fautre(){ return this.fmali+this.om; }
   };
 }
@@ -3117,21 +3397,28 @@ function saveParams(){
     taux:  parseFloat(S('cfg-taux').value) ||TAUX,
     fmali: parseFloat(S('cfg-fmali').value)||F_MALI*100,
     fom:   parseFloat(S('cfg-fom').value)  ||OM*100,
-    ret:   parseFloat(S('cfg-ret').value)  ||RET*100
+    ret:   parseFloat(S('cfg-ret').value)  ||RET*100,
+    frecep:parseFloat(S('cfg-frecep').value)||F_RECEP*100,
+    tauxRecep: parseFloat(S('cfg-taux-recep').value)||61.5
   };
   localStorage.setItem('tp_cfg',JSON.stringify(cfg));
   blurAll();haptic();toast('✓ Paramètres enregistrés — recalcul actif');
   // Re-render les sections qui dépendent des paramètres
-  renderDash();renderBrouillon();
+  renderDash();renderBrouillon();renderParamsActifs();
 }
 function loadSettings(){
   const cfg=getCfg();
   S('cfg-taux').value= cfg.taux  ||TAUX;
   S('cfg-fmali').value=cfg.fmali ||(F_MALI*100);
   S('cfg-fom').value=  cfg.fom   ||(OM*100);
+  if(S('cfg-taux-recep'))S('cfg-taux-recep').value=cfg.tauxRecep||61.5;
+  tauxR=cfg.tauxRecep||61.5;tauxEntrant=cfg.tauxRecep||61.5;
   S('cfg-ret').value=  cfg.ret   ||(RET*100);
+  if(S('cfg-frecep'))S('cfg-frecep').value=cfg.frecep||(F_RECEP*100);
+
   S('btn-remove-pin').style.display=localStorage.getItem('tp_pin')?'block':'none';
   loadWebhook();
+  renderAgentsList();updateAgentDropdowns();
 }
 
 // ── PIN ───────────────────────────────────────────────────
@@ -3700,6 +3987,7 @@ renderDash();
 renderObjectif();
 setTimeout(renderJours,100);
 initRapportSelects();
+updateAgentDropdowns();
 checkPin();
 registerSW();
 </script>
