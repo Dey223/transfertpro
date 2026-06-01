@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="SpeedCash">
 <meta name="theme-color" content="#0a0a0f">
@@ -13,7 +13,7 @@
 const manifest={
   name:'SpeedCash',short_name:'SpeedCash',
   description:'Gestion de transfert d\'argent Mali-Maroc',
-  start_url:'/',display:'standalone',
+  start_url:'.',display:'standalone',
   background_color:'#0a0a0f',theme_color:'#0a0a0f',
   orientation:'portrait',
   icons:[
@@ -955,7 +955,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
           Tes données sont sauvegardées automatiquement dans le cloud toutes les 5 transactions. Tu peux aussi forcer un backup manuel ou restaurer depuis le dernier backup.
         </div>
         <div style="display:flex;gap:8px">
-          <button class="btn" onclick="backupToAppwrite().then(()=>toast('✅ Backup envoyé'))" style="flex:1;background:rgba(46,204,138,0.08);color:var(--green);border:0.5px solid rgba(46,204,138,0.2)">
+          <button class="btn" onclick="backupToAppwrite().then(r=>{if(r!==false)toast('✅ Backup envoyé vers le cloud');else toast('Échec du backup','var(--red)');})" style="flex:1;background:rgba(46,204,138,0.08);color:var(--green);border:0.5px solid rgba(46,204,138,0.2)">
             <svg viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
             Sauvegarder
           </button>
@@ -1038,11 +1038,15 @@ const AW_PROJECT='6a1c5772000195a53f31';
 const AW_DB='speedcash-db';
 
 function awFetch(path,method,body){
-  return fetch(AW_ENDPOINT+path,{
+  const opts={
     method:method||'GET',
-    headers:{'Content-Type':'application/json','X-Appwrite-Project':AW_PROJECT},
-    body:body?JSON.stringify(body):undefined
-  }).then(r=>r.json()).catch(e=>{console.warn('Appwrite:',e);return null;});
+    headers:{'Content-Type':'application/json','X-Appwrite-Project':AW_PROJECT,'X-Appwrite-Response-Format':'1.6.0'}
+  };
+  if(body)opts.body=JSON.stringify(body);
+  return fetch(AW_ENDPOINT+path,opts).then(r=>{
+    if(!r.ok)return r.json().then(e=>{console.warn('Appwrite '+r.status+':',e.message);return null;});
+    return r.json();
+  }).catch(e=>{console.warn('Appwrite:',e);return null;});
 }
 
 // Backup vers Appwrite
@@ -1069,9 +1073,9 @@ async function backupToAppwrite(){
         source:'auto'
       }
     });
-    if(res&&res.$id)console.log('💾 Backup OK —',txs.length,'tx');
-    else console.warn('Backup échoué:',res);
-  }catch(e){console.warn('Backup échoué:',e);}
+    if(res&&res.$id){console.log('💾 Backup OK —',txs.length,'tx');return true;}
+    else{console.warn('Backup échoué:',res);return false;}
+  }catch(e){console.warn('Backup échoué:',e);return false;}
 }
 
 // Sync transaction vers Appwrite
@@ -1105,7 +1109,7 @@ async function syncTxToAppwrite(tx){
 // Restaurer depuis Appwrite
 async function restoreFromAppwrite(){
   try{
-    const res=await awFetch('/databases/'+AW_DB+'/collections/backups/documents?queries[0]=orderDesc("backupDate")&queries[1]=limit(1)','GET');
+    const res=await awFetch('/databases/'+AW_DB+'/collections/backups/documents?queries[]='+encodeURIComponent('orderDesc("backupDate")')+'&queries[]='+encodeURIComponent('limit(1)'),'GET');
     if(!res||!res.documents||!res.documents.length){toast('Aucun backup trouvé — sauvegarde d\'abord','var(--amber)');return;}
     const backup=res.documents[0];
     const data=JSON.parse(backup.dataJson);
@@ -3947,13 +3951,23 @@ ${recepsAgent.map((t,i)=>{
     toast('✓ Fichier téléchargé');
   };
 
-  // Bouton imprimer
+  // Bouton imprimer — ouvrir dans une nouvelle fenêtre pour éviter l'URL dans le PDF
   document.getElementById('btn-print-pdf').onclick=()=>{
-    toolbar.style.visibility='hidden';
-    setTimeout(()=>{
-      iframe.contentWindow.print();
-      setTimeout(()=>{toolbar.style.visibility='visible';},800);
-    },100);
+    const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+    const blobUrl=URL.createObjectURL(blob);
+    const win=window.open(blobUrl,'_blank');
+    if(win){
+      win.onload=()=>{
+        setTimeout(()=>{win.print();setTimeout(()=>URL.revokeObjectURL(blobUrl),5000);},500);
+      };
+    } else {
+      // Fallback si popup bloquée
+      toolbar.style.visibility='hidden';
+      setTimeout(()=>{
+        iframe.contentWindow.print();
+        setTimeout(()=>{toolbar.style.visibility='visible';},800);
+      },100);
+    }
   };
 
   toast('✓ Relevé prêt — appuie sur PDF');
