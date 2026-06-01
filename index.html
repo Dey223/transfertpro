@@ -935,10 +935,10 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
         </div>
         <div id="agents-list" style="margin-bottom:12px"></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-          <input type="text" id="new-agent-nom" placeholder="Nom"
-            style="padding:10px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:13px;color:var(--text);outline:none;font-family:'DM Sans',sans-serif">
-          <input type="tel" id="new-agent-tel" placeholder="+212..."
-            style="padding:10px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:13px;color:var(--text);outline:none;font-family:'DM Mono',monospace">
+          <input type="text" id="new-agent-nom" placeholder="Nom de l'agent"
+            style="padding:10px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:13px;color:var(--text);outline:none;font-family:'DM Sans',sans-serif;min-width:0">
+          <input type="tel" id="new-agent-tel" placeholder="+212XXXXXXXXX"
+            style="padding:10px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:13px;color:var(--text);outline:none;font-family:'DM Mono',monospace;min-width:0">
         </div>
         <input type="text" id="new-agent-zone" placeholder="Zone (ex: Casablanca, Rabat...)"
           style="width:100%;padding:10px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:13px;color:var(--text);outline:none;font-family:'DM Sans',sans-serif;margin-bottom:8px">
@@ -952,7 +952,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
       <div class="section-t">Sauvegarde cloud (Appwrite)</div>
       <div class="card" style="padding:14px 16px">
         <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.6">
-          Tes données sont sauvegardées automatiquement toutes les 5 transactions. Tu peux aussi forcer un backup ou restaurer.
+          Tes données sont sauvegardées automatiquement dans le cloud toutes les 5 transactions. Tu peux aussi forcer un backup manuel ou restaurer depuis le dernier backup.
         </div>
         <div style="display:flex;gap:8px">
           <button class="btn" onclick="backupToAppwrite().then(()=>toast('✅ Backup envoyé'))" style="flex:1;background:rgba(46,204,138,0.08);color:var(--green);border:0.5px solid rgba(46,204,138,0.2)">
@@ -1061,6 +1061,7 @@ async function backupToAppwrite(){
     };
     const res=await awFetch('/databases/'+AW_DB+'/collections/backups/documents','POST',{
       documentId:'unique()',
+      permissions:['read("any")','write("any")','update("any")','delete("any")'],
       data:{
         backupDate:new Date().toISOString(),
         dataJson:JSON.stringify(data),
@@ -1078,6 +1079,7 @@ async function syncTxToAppwrite(tx){
   try{
     await awFetch('/databases/'+AW_DB+'/collections/transactions/documents','POST',{
       documentId:'unique()',
+      permissions:['read("any")','write("any")','update("any")','delete("any")'],
       data:{
         txDate:tx.date||new Date().toISOString(),
         txType:tx.type||'envoi',
@@ -1103,7 +1105,7 @@ async function syncTxToAppwrite(tx){
 // Restaurer depuis Appwrite
 async function restoreFromAppwrite(){
   try{
-    const res=await awFetch('/databases/'+AW_DB+'/collections/backups/documents?queries[]=orderDesc("backupDate")&queries[]=limit(1)','GET');
+    const res=await awFetch('/databases/'+AW_DB+'/collections/backups/documents?queries[]='+encodeURIComponent('orderDesc("backupDate")')+'&queries[]='+encodeURIComponent('limit(1)'),'GET');
     if(!res||!res.documents||!res.documents.length){toast('Aucun backup trouvé','var(--amber)');return;}
     const backup=res.documents[0];
     const data=JSON.parse(backup.dataJson);
@@ -2714,7 +2716,7 @@ function ajouterAgent(){
   renderAgentsList();updateAgentDropdowns();
   haptic();toast('✅ Agent ajouté : '+nom);
   // Sync Appwrite
-  awFetch('/databases/'+AW_DB+'/collections/agents/documents','POST',{documentId:'unique()',data:{nom,telephone:tel,zone,actif:true}});
+  awFetch('/databases/'+AW_DB+'/collections/agents/documents','POST',{documentId:'unique()',permissions:['read("any")','write("any")'],data:{nom,telephone:tel,zone,actif:true}});
 }
 
 function suppAgent(id){
@@ -3898,6 +3900,7 @@ ${recepsAgent.map((t,i)=>{
 </table>
 `}
 
+<style>iframe{border:none}[data-netlify-badge]{display:none!important}.netlify-badge{display:none!important}</style>
 <footer>SpeedCash · ${isAgent?'Document agent confidentiel':'Relevé confidentiel'} · Généré le ${new Date().toLocaleDateString('fr-FR')}</footer>
 </body></html>`;
 
