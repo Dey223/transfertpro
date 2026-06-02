@@ -600,6 +600,12 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
       </div>
 
       <!-- Envoi WhatsApp -->
+      <!-- Compte de résultat -->
+      <div class="section-t">Compte de résultat</div>
+      <div class="card" style="padding:14px 16px">
+        <div id="compte-resultat"></div>
+      </div>
+
       <div class="section-t">Envoyer via WhatsApp</div>
       <div class="card" style="padding:14px 16px">
         <select id="wa-report-type" style="width:100%;padding:11px 12px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:14px;color:var(--text);outline:none;font-family:'DM Sans',sans-serif;margin-bottom:10px">
@@ -634,28 +640,39 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
         <div id="sms-result" style="margin-top:12px"></div>
       </div>
 
-      <!-- Soldes actuels -->
-      <div class="section-t" style="margin-top:14px">Mes soldes actuels</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <!-- Soldes calculés -->
+      <div class="section-t" style="margin-top:14px;display:flex;justify-content:space-between;align-items:center">
+        <span>Mes soldes</span>
+        <button onclick="editSoldeInitial()" style="font-size:11px;padding:3px 8px;border-radius:20px;border:0.5px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif">Solde initial</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px">
         <div class="card" style="padding:14px;border:0.5px solid rgba(79,138,255,0.3);min-width:0">
           <div style="font-size:10px;color:var(--text3);letter-spacing:.5px;margin-bottom:8px;text-transform:uppercase">Poche CFA 🇲🇱</div>
-          <div style="font-size:11px;color:var(--text2);margin-bottom:4px">Solde actuel</div>
-          <div style="display:flex;align-items:center;gap:4px">
-            <input type="number" id="solde-cfa" inputmode="numeric" placeholder="0"
-              style="flex:1;min-width:0;width:0;padding:8px 6px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:15px;font-weight:600;font-family:'DM Mono',monospace;color:var(--accent);outline:none;-webkit-appearance:none"
-              oninput="saveSoldes();simulerLiquidation()">
-            <span style="font-size:11px;color:var(--text3);flex-shrink:0">F</span>
-          </div>
+          <div id="solde-cfa-calc" style="font-size:18px;font-weight:600;font-family:'DM Mono',monospace;color:var(--accent)">0 F</div>
+          <div id="solde-cfa-delta" style="font-size:11px;color:var(--text3);margin-top:4px"></div>
+          <input type="hidden" id="solde-cfa" value="0">
         </div>
         <div class="card" style="padding:14px;border:0.5px solid rgba(46,204,138,0.3);min-width:0">
           <div style="font-size:10px;color:var(--text3);letter-spacing:.5px;margin-bottom:8px;text-transform:uppercase">Poche MAD 🇲🇦</div>
-          <div style="font-size:11px;color:var(--text2);margin-bottom:4px">Solde actuel</div>
-          <div style="display:flex;align-items:center;gap:4px">
-            <input type="number" id="solde-mad" inputmode="decimal" placeholder="0"
-              style="flex:1;min-width:0;width:0;padding:8px 6px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:15px;font-weight:600;font-family:'DM Mono',monospace;color:var(--green);outline:none;-webkit-appearance:none"
-              oninput="saveSoldes();simulerLiquidation()">
-            <span style="font-size:11px;color:var(--text3);flex-shrink:0">MAD</span>
+          <div id="solde-mad-calc" style="font-size:18px;font-weight:600;font-family:'DM Mono',monospace;color:var(--green)">0 MAD</div>
+          <div id="solde-mad-delta" style="font-size:11px;color:var(--text3);margin-top:4px"></div>
+          <input type="hidden" id="solde-mad" value="0">
+        </div>
+      </div>
+      <!-- Rapprochement -->
+      <div class="card" style="padding:12px 14px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:12px;color:var(--text2)">Rapprochement Orange Money</span>
+          <button onclick="toggleRapprochement()" id="btn-rapp" style="font-size:11px;padding:4px 10px;border-radius:20px;border:0.5px solid var(--border2);background:transparent;color:var(--accent);cursor:pointer;font-family:'DM Sans',sans-serif">Vérifier</button>
+        </div>
+        <div id="rapprochement-zone" style="display:none;margin-top:10px">
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="number" id="rapp-solde" inputmode="numeric" placeholder="Solde Orange Money réel"
+              style="flex:1;padding:10px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:14px;font-family:'DM Mono',monospace;color:var(--text);outline:none;-webkit-appearance:none;min-width:0"
+              oninput="calculerEcart()">
+            <span style="font-size:11px;color:var(--text3);flex-shrink:0">F CFA</span>
           </div>
+          <div id="rapp-result" style="margin-top:8px"></div>
         </div>
       </div>
 
@@ -1100,7 +1117,7 @@ async function syncTxToAppwrite(tx){
         devise:tx.devise||'MAD',
         note:tx.note||'',
         agentId:tx.agentId||'',
-        localId:String(tx.id||'')
+        localId:String(tx.ref||tx.id||'')
       }
     });
   }catch(e){console.warn('Sync tx échoué:',e);}
@@ -1481,7 +1498,7 @@ function validerRecep(){
     if(!mMAD||!xofA){toast('Montant invalide','var(--red)');return;}
     mXof=xofA;ben=xofA-(mMAD*TAUX);
   }
-  save({id:Date.now(),date:new Date().toISOString(),beneficiaire:benef,type:'recep',
+  save({id:Date.now(),ref:genRef(),date:new Date().toISOString(),beneficiaire:benef,type:'recep',
     destination:'🇲🇦 Maroc',montantXof:mXof,montantMAD:mMAD,taux:tauxR,
     gereParAgent:agentRecep,benefice:ben,devise:'XOF'});
   saveContact(benef);
@@ -1504,6 +1521,15 @@ function isPWA(){
 // Export universel : télécharge en Safari, ouvre nouvel onglet en PWA
 
 // ── STOCKAGE ──────────────────────────────────────────────
+function genRef(){
+  const now=new Date();
+  const m=String(now.getMonth()+1).padStart(2,'0');
+  const y=String(now.getFullYear()).slice(-2);
+  // Compter les tx du mois courant
+  const txs=getTxs();
+  const count=txs.filter(t=>{const d=new Date(t.date);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();}).length;
+  return 'SC-'+y+m+'-'+String(count+1).padStart(3,'0');
+}
 function save(tx){const t=getTxs();t.unshift(tx);localStorage.setItem('tp_txs',JSON.stringify(t));renderDash();sendWebhook('transaction',tx);syncTxToAppwrite(tx);if(t.length%5===0)backupToAppwrite();}
 
 // ── WEBHOOK N8N ──────────────────────────────────────────
@@ -2036,6 +2062,7 @@ function renderHist(){
     const assocB=t.viaAssoc?'<span class="badge" style="background:rgba(240,165,0,0.1);color:var(--amber)">via associé</span>':'';
     const _ag=t.agentId?getAgents().find(a=>a.id===t.agentId):null;
     const agentB=t.gereParAgent?'<span class="badge" style="background:rgba(79,138,255,0.1);color:var(--accent)">'+(_ag?_ag.nom:'agent')+'</span>':'';
+    const refB=t.ref?'<span style="font-size:9px;font-family:DM Mono,monospace;color:var(--text3);margin-left:4px">'+t.ref+'</span>':'';
     const swipeHint=`<div style="position:absolute;right:14px;top:50%;transform:translateY(-50%);opacity:0.2;pointer-events:none">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
     </div>`;
@@ -2075,6 +2102,83 @@ function setDashPeriod(p,btn){
   btn.classList.add('on');renderDash();setTimeout(renderGraph,100);setTimeout(renderJours,50);
 }
 
+function renderCompteResultat(){
+  const el=S('compte-resultat');if(!el)return;
+  const txs=getTxs();
+  const now=new Date();
+  const p=P();
+
+  // Filtrer le mois courant
+  const txsMois=txs.filter(t=>{const d=new Date(t.date);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
+  const envois=txsMois.filter(t=>t.type==='envoi');
+  const receps=txsMois.filter(t=>t.type==='recep');
+
+  // REVENUS
+  const fraisEnvois=envois.reduce((s,t)=>s+((t.benefice||0)-(t.gainArrondi||0)),0);
+  const arrondis=envois.reduce((s,t)=>s+(t.gainArrondi||0),0);
+  const fraisRecepXof=receps.reduce((s,t)=>s+(t.benefice||0),0);
+  const fraisRecepMAD=fraisRecepXof/p.taux;
+  const totalRevenus=fraisEnvois+arrondis+fraisRecepMAD;
+
+  // COÛTS
+  const dep=typeof getDépenses==='function'?getDépenses():[];
+  const depMois=dep.filter(d=>{const dd=new Date(d.date);return dd.getMonth()===now.getMonth()&&dd.getFullYear()===now.getFullYear();});
+  const commissionAgent=depMois.reduce((s,d)=>s+(d.montant||0),0);
+  const txAssoc=envois.filter(t=>t.viaAssoc);
+  const perteAssoc=txAssoc.reduce((s,t)=>s+((t.montantXof||0)/p.taux*0.025),0); // perte marge 61.5→60 = ~2.5%
+  const totalCouts=commissionAgent+perteAssoc;
+
+  // NET
+  const netReel=totalRevenus-totalCouts;
+  const moisNom=now.toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+  const nbTx=txsMois.length;
+  const parTx=nbTx>0?(netReel/nbTx):0;
+
+  el.innerHTML=`
+    <div style="font-size:11px;color:var(--text3);margin-bottom:10px;letter-spacing:.3px;text-transform:uppercase">${moisNom}</div>
+
+    <div style="font-size:12px;color:var(--green);font-weight:600;margin-bottom:6px">REVENUS</div>
+    <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px">
+      <span style="color:var(--text2)">Frais envois (${fmt(p.fmali*100,1)}%)</span>
+      <span style="font-family:'DM Mono',monospace;color:var(--green)">+${fmt(fraisEnvois,2)} MAD</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px">
+      <span style="color:var(--text2)">Arrondis agent</span>
+      <span style="font-family:'DM Mono',monospace;color:var(--green)">+${fmt(arrondis,2)} MAD</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px">
+      <span style="color:var(--text2)">Frais réceptions</span>
+      <span style="font-family:'DM Mono',monospace;color:var(--green)">+${fmt(fraisRecepMAD,2)} MAD</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-top:0.5px solid var(--border);margin-top:4px;font-weight:600">
+      <span style="color:var(--text)">Total revenus</span>
+      <span style="font-family:'DM Mono',monospace;color:var(--green)">+${fmt(totalRevenus,2)} MAD</span>
+    </div>
+
+    <div style="font-size:12px;color:var(--red);font-weight:600;margin:12px 0 6px">COÛTS</div>
+    <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px">
+      <span style="color:var(--text2)">Commission agent</span>
+      <span style="font-family:'DM Mono',monospace;color:var(--red)">${commissionAgent>0?'-':''}${fmt(commissionAgent,2)} MAD</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px">
+      <span style="color:var(--text2)">Perte marge via associé (${txAssoc.length} tx)</span>
+      <span style="font-family:'DM Mono',monospace;color:var(--red)">${perteAssoc>0?'-':''}${fmt(perteAssoc,2)} MAD</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-top:0.5px solid var(--border);margin-top:4px;font-weight:600">
+      <span style="color:var(--text)">Total coûts</span>
+      <span style="font-family:'DM Mono',monospace;color:var(--red)">-${fmt(totalCouts,2)} MAD</span>
+    </div>
+
+    <div style="background:${netReel>=0?'rgba(46,204,138,0.08)':'rgba(255,79,106,0.08)'};border:0.5px solid ${netReel>=0?'rgba(46,204,138,0.2)':'rgba(255,79,106,0.2)'};border-radius:var(--rs);padding:12px;margin-top:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:14px;font-weight:600;color:var(--text)">Bénéfice net réel</span>
+        <span style="font-size:18px;font-weight:700;font-family:'DM Mono',monospace;color:${netReel>=0?'var(--green)':'var(--red)'}">${fmt(netReel,2)} MAD</span>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px">
+        ${nbTx} tx · ${fmt(parTx,2)} MAD/tx · ≈ ${fmt(netReel*p.taux)} F CFA
+      </div>
+    </div>`;
+}
 function renderParamsActifs(){
   const p=P();
   const el=S('params-actifs');if(!el)return;
@@ -2190,7 +2294,7 @@ function showPage(p){
     S('nav-'+x).className='nav-btn'+(x===p?' active':'');
   });
   if(p==='hist')renderHist();
-  if(p==='dash'){renderDash();renderObjectif();renderParamsActifs();setTimeout(renderGraph,100);setTimeout(renderJours,50);}
+  if(p==='dash'){renderDash();renderObjectif();renderParamsActifs();renderCompteResultat();setTimeout(renderGraph,100);setTimeout(renderJours,50);}
   if(p==='treo'){loadSoldes();simulerLiquidation();renderAgent();renderMargeTaux();renderBrouillon();renderRecon();}
   if(p==='analyse'){renderRecon();renderMargeTaux();setTimeout(renderAnalyses,50);}
   if(p==='settings')loadSettings();
@@ -2391,16 +2495,141 @@ function renderAnalyses(){
 
 // ── SOLDES ────────────────────────────────────────────────
 function saveSoldes(){
-  const cfa=parseFloat(S('solde-cfa').value)||0;
-  const mad=parseFloat(S('solde-mad').value)||0;
-  localStorage.setItem('tp_soldes',JSON.stringify({cfa,mad,updated:new Date().toISOString()}));
+  // Les soldes sont maintenant calculés — on sauve quand même pour le webhook
+  const calc=calculerSoldes();
+  localStorage.setItem('tp_soldes',JSON.stringify({cfa:calc.cfa,mad:calc.mad,updated:new Date().toISOString()}));
 }
+
+function getSoldeInitial(){
+  try{return JSON.parse(localStorage.getItem('tp_solde_initial'))||{cfa:0,mad:0,date:''};}catch{return{cfa:0,mad:0,date:''};}
+}
+
+function editSoldeInitial(){
+  const si=getSoldeInitial();
+  const overlay=document.createElement('div');
+  overlay.id='si-overlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9998;display:flex;align-items:flex-end;justify-content:center';
+  overlay.innerHTML=`
+    <div style="background:var(--bg2);border-radius:var(--r) var(--r) 0 0;padding:20px;width:100%;max-width:430px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div style="font-size:16px;font-weight:600">Solde initial</div>
+        <button onclick="S('si-overlay').remove()" style="border:none;background:transparent;color:var(--text2);font-size:22px;cursor:pointer;padding:4px 8px">×</button>
+      </div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:12px;line-height:1.6">
+        Saisis ton solde de départ. L'app calculera automatiquement les mouvements depuis cette date.
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <div class="field" style="margin:0">
+          <label style="font-size:11px">Solde CFA initial</label>
+          <input type="number" id="si-cfa" inputmode="numeric" value="${si.cfa||''}" placeholder="300000"
+            style="width:100%;padding:10px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:15px;font-family:'DM Mono',monospace;color:var(--text);outline:none;-webkit-appearance:none">
+        </div>
+        <div class="field" style="margin:0">
+          <label style="font-size:11px">Solde MAD initial</label>
+          <input type="number" id="si-mad" inputmode="decimal" value="${si.mad||''}" placeholder="40000"
+            style="width:100%;padding:10px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:15px;font-family:'DM Mono',monospace;color:var(--text);outline:none;-webkit-appearance:none">
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:14px">
+        <label style="font-size:11px">Date de début</label>
+        <input type="date" id="si-date" value="${si.date||new Date().toISOString().slice(0,10)}"
+          style="width:100%;padding:10px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:14px;font-family:'DM Mono',monospace;color:var(--text);outline:none">
+      </div>
+      <button onclick="saveSoldeInitial()" class="btn btn-primary">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Enregistrer
+      </button>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+function saveSoldeInitial(){
+  const si={
+    cfa:parseFloat(S('si-cfa').value)||0,
+    mad:parseFloat(S('si-mad').value)||0,
+    date:S('si-date').value||new Date().toISOString().slice(0,10)
+  };
+  localStorage.setItem('tp_solde_initial',JSON.stringify(si));
+  S('si-overlay').remove();
+  loadSoldes();simulerLiquidation();
+  haptic();toast('✓ Solde initial enregistré');
+}
+
+function calculerSoldes(){
+  const si=getSoldeInitial();
+  const txs=getTxs();
+  const dep=getDépenses?getDépenses():[];
+  const dateDebut=si.date?new Date(si.date):new Date('2020-01-01');
+
+  let cfa=si.cfa, mad=si.mad;
+
+  // Parcourir les transactions (les plus anciennes d'abord)
+  const txsSorted=[...txs].reverse();
+  txsSorted.forEach(t=>{
+    if(new Date(t.date)<dateDebut)return;
+    if(t.type==='envoi'){
+      cfa-=(t.montantXof||0); // CFA envoyés
+      mad+=(t.montantMAD||0); // MAD récupérés
+    } else if(t.type==='recep'){
+      cfa+=(t.montantXof||0); // CFA reçus
+      mad-=(t.montantMAD||0); // MAD donnés
+    }
+  });
+
+  // Soustraire les dépenses agent
+  if(dep&&dep.length){
+    dep.forEach(d=>{
+      if(new Date(d.date)<dateDebut)return;
+      mad-=(d.montant||0);
+    });
+  }
+
+  return {cfa:Math.round(cfa),mad:Math.round(mad*100)/100};
+}
+
 function loadSoldes(){
-  try{
-    const s=JSON.parse(localStorage.getItem('tp_soldes'))||{};
-    if(s.cfa)S('solde-cfa').value=s.cfa;
-    if(s.mad)S('solde-mad').value=s.mad;
-  }catch{}
+  const calc=calculerSoldes();
+  const si=getSoldeInitial();
+  
+  // Afficher les soldes calculés
+  if(S('solde-cfa-calc'))S('solde-cfa-calc').textContent=fmt(calc.cfa)+' F';
+  if(S('solde-mad-calc'))S('solde-mad-calc').textContent=fmt(calc.mad,2)+' MAD';
+  
+  // Delta depuis le solde initial
+  const deltaCFA=calc.cfa-si.cfa;
+  const deltaMAD=calc.mad-si.mad;
+  if(S('solde-cfa-delta'))S('solde-cfa-delta').textContent=(deltaCFA>=0?'+':'')+fmt(deltaCFA)+' F depuis le début';
+  if(S('solde-mad-delta'))S('solde-mad-delta').textContent=(deltaMAD>=0?'+':'')+fmt(deltaMAD,2)+' MAD depuis le début';
+  
+  // Hidden inputs pour les autres fonctions
+  S('solde-cfa').value=calc.cfa;
+  S('solde-mad').value=calc.mad;
+  
+  // Sauver pour le webhook
+  localStorage.setItem('tp_soldes',JSON.stringify({cfa:calc.cfa,mad:calc.mad,updated:new Date().toISOString()}));
+}
+
+function toggleRapprochement(){
+  const z=S('rapprochement-zone');
+  z.style.display=z.style.display==='none'?'block':'none';
+}
+
+function calculerEcart(){
+  const reel=parseFloat(S('rapp-solde').value)||0;
+  const calc=calculerSoldes().cfa;
+  const ecart=reel-calc;
+  const el=S('rapp-result');
+  if(!reel){el.innerHTML='';return;}
+  
+  if(Math.abs(ecart)<100){
+    el.innerHTML='<div style="color:var(--green);font-size:13px">✅ Soldes cohérents (écart : '+fmt(ecart)+' F)</div>';
+  } else {
+    const color=ecart>0?'var(--green)':'var(--red)';
+    const signe=ecart>0?'+':'';
+    el.innerHTML='<div style="padding:10px;background:'+(ecart>0?'rgba(46,204,138,0.08)':'rgba(255,79,106,0.08)')+';border-radius:var(--rs);border:0.5px solid '+(ecart>0?'rgba(46,204,138,0.2)':'rgba(255,79,106,0.2)')+'">'+
+      '<div style="font-size:13px;font-weight:500;color:'+color+'">Écart : '+signe+fmt(ecart)+' F</div>'+
+      '<div style="font-size:11px;color:var(--text3);margin-top:4px">'+(ecart>0?'Orange Money a plus que l\'app — probablement un dépôt non enregistré':'L\'app a plus qu\'Orange Money — probablement un envoi non enregistré')+'</div>'+
+    '</div>';
+  }
 }
 
 // ── SIMULATEUR LIQUIDATION ────────────────────────────────
@@ -2619,7 +2848,58 @@ function parserSMS(){
   // Stocker parsed pour l'import
   window._smsParsed=parsed;
 
-  el.innerHTML=html+`
+  // ── VALIDATION CROISÉE ─────────────────────────────────
+  let validationHtml='';
+  const txs=getTxs();
+  const smsMontant=parsed.montant;
+  const now=new Date();
+  const hier=new Date(now-24*60*60*1000);
+
+  // Chercher une transaction correspondante (même montant XOF, dernières 24h)
+  const match=txs.find(t=>{
+    const txDate=new Date(t.date);
+    if(txDate<hier)return false;
+    // Match si le montant XOF correspond (±2%)
+    const diff=Math.abs((t.montantXof||0)-smsMontant);
+    return diff<smsMontant*0.02;
+  });
+
+  // Chercher aussi les doublons potentiels (même montant + même jour)
+  const today=now.toISOString().slice(0,10);
+  const doublons=txs.filter(t=>{
+    return new Date(t.date).toISOString().slice(0,10)===today
+      && Math.abs((t.montantXof||0)-smsMontant)<smsMontant*0.02;
+  });
+
+  if(match){
+    const mDate=new Date(match.date).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    validationHtml=`
+      <div style="background:rgba(46,204,138,0.08);border:0.5px solid rgba(46,204,138,0.2);border-radius:var(--rs);padding:10px 12px;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px">
+        <div style="font-size:16px;flex-shrink:0">✅</div>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--green)">Transaction trouvée</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px">
+            ${match.beneficiaire||'Anonyme'} · ${match.montantMAD||0} MAD · ${mDate}
+            ${match.type==='envoi'?'↑':'↓'} ${match.destination||''}
+          </div>
+          ${doublons.length>1?'<div style="font-size:11px;color:var(--amber);margin-top:4px">⚠️ '+doublons.length+' transactions similaires aujourd\'hui — vérifie les doublons</div>':''}
+        </div>
+      </div>`;
+  } else {
+    validationHtml=`
+      <div style="background:rgba(240,165,0,0.08);border:0.5px solid rgba(240,165,0,0.2);border-radius:var(--rs);padding:10px 12px;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px">
+        <div style="font-size:16px;flex-shrink:0">⚠️</div>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--amber)">Transaction non trouvée</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px">
+            Aucune transaction de ${fmt(smsMontant)} F dans les dernières 24h.
+            ${parsed.type==='depot'?'Importe-la pour l\'enregistrer.':'Pense à l\'enregistrer.'}
+          </div>
+        </div>
+      </div>`;
+  }
+
+  el.innerHTML=validationHtml+html+`
     <button onclick="${btnAction}" class="btn btn-primary" style="margin-top:0">
       <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       ${btnLabel}
@@ -3627,32 +3907,54 @@ function setTheme(t){
     r.setProperty('--border','rgba(0,0,0,0.08)');r.setProperty('--border2','rgba(0,0,0,0.12)');
   }
   localStorage.setItem('tp_theme',t);
-  // Adapter le logo selon le thème
+  document.body.dataset.theme=isDark?'dark':'light';
+  // Logo
   const li=document.querySelector('.logo-icon');if(li)li.style.filter=isDark?'none':'brightness(0.9)';
-  // Mettre à jour les boutons
+  // Boutons thème
+  updateThemeButtons(t);
+  // Palettes accent
+  updateAccentPalettes();
+}
+
+function updateThemeButtons(activeTheme){
+  const accent=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#4f8aff';
   ['dark','light','auto'].forEach(x=>{
     const b=S('theme-'+x);if(!b)return;
-    const active=x===t;
-    b.style.borderWidth=active?'1.5px':'0.5px';
-    b.style.borderStyle='solid';
-    b.style.borderColor=active?'var(--accent)':'var(--border2)';
-    b.style.background=active?'rgba(79,138,255,0.1)':'transparent';
-    b.style.color=active?'var(--accent)':'var(--text2)';
-    b.style.fontWeight=active?'600':'500';
+    const active=x===activeTheme;
+    b.style.cssText='flex:1;padding:10px;border-radius:var(--rs);font-size:13px;cursor:pointer;font-family:DM Sans,sans-serif;transition:all .2s;text-align:center;'
+      +(active
+        ?'border:1.5px solid '+accent+';background:'+accent+'15;color:'+accent+';font-weight:600;'
+        :'border:0.5px solid var(--border2);background:transparent;color:var(--text2);font-weight:500;');
   });
 }
+
 function setAccent(color){
   document.documentElement.style.setProperty('--accent',color);
   localStorage.setItem('tp_accent',color);
-  // Ring sur le cercle sélectionné
-  ['acc-blue','acc-green','acc-amber','acc-purple','acc-red'].forEach(id=>{
-    const el=S(id);if(el)el.style.outline='none';
-  });
-  // Trouver l'élément correspondant
-  const map={'#4f8aff':'acc-blue','#2ecc8a':'acc-green','#f0a500':'acc-amber','#a78bfa':'acc-purple','#ff4f6a':'acc-red'};
-  if(map[color]&&S(map[color]))S(map[color]).style.outline='3px solid '+color;
+  updateAccentPalettes();
+  updateThemeButtons(localStorage.getItem('tp_theme')||'dark');
   haptic();
 }
+
+function updateAccentPalettes(){
+  const currentAccent=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#4f8aff';
+  const isDark=document.body.dataset.theme!=='light';
+  const map={'#4f8aff':'acc-blue','#2ecc8a':'acc-green','#f0a500':'acc-amber','#a78bfa':'acc-purple','#ff4f6a':'acc-red'};
+  
+  ['acc-blue','acc-green','acc-amber','acc-purple','acc-red'].forEach(id=>{
+    const el=S(id);if(!el)return;
+    const isActive=map[currentAccent]===id;
+    el.style.outline=isActive?'3px solid '+currentAccent:'none';
+    el.style.outlineOffset=isActive?'3px':'0';
+    el.style.boxShadow=isActive
+      ?(isDark?'0 0 12px '+currentAccent+'40':'0 0 8px '+currentAccent+'30')
+      :(isDark?'0 1px 4px rgba(0,0,0,0.3)':'0 1px 4px rgba(0,0,0,0.1)');
+    el.style.border=isDark?'2px solid rgba(255,255,255,0.1)':'2px solid rgba(0,0,0,0.08)';
+    el.style.transform=isActive?'scale(1.15)':'scale(1)';
+    el.style.transition='all .2s ease';
+  });
+}
+
 function loadTheme(){
   const t=localStorage.getItem('tp_theme')||'dark';
   const a=localStorage.getItem('tp_accent');
