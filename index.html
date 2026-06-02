@@ -721,6 +721,17 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
           <button class="filter-btn" id="bf-arr" onclick="setBrouillonFilter('arr',this)">Arrondis agent</button>
           <button class="filter-btn" id="bf-mois" onclick="setBrouillonFilter('mois',this)">Ce mois</button>
           <button class="filter-btn" id="bf-semaine" onclick="setBrouillonFilter('semaine',this)">Semaine</button>
+          <button class="filter-btn" id="bf-libre" onclick="setBrouillonFilter('libre',this)">Plage libre</button>
+        </div>
+        <div id="brouillon-dates" style="display:none;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;margin-bottom:10px;min-width:0">
+          <div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:4px">DU</div>
+            <input type="date" id="brouillon-debut" style="width:100%;padding:8px 6px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:12px;color:var(--text);outline:none;font-family:'DM Mono',monospace;min-width:0" oninput="renderBrouillon()">
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:4px">AU</div>
+            <input type="date" id="brouillon-fin" style="width:100%;padding:8px 6px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:12px;color:var(--text);outline:none;font-family:'DM Mono',monospace;min-width:0" oninput="renderBrouillon()">
+          </div>
         </div>
         <div id="brouillon-result"></div>
         <div style="margin-top:12px;padding-top:12px;border-top:0.5px solid var(--border)">
@@ -744,23 +755,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
       </div>
 
       <!-- 3. RÉCONCILIATION Max It / Sugu -->
-      <div class="section-t">Réconciliation Max It / Mali Sugu</div>
-      <div class="card">
-        <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6">
-          Saisis le total de transactions visible dans Max It ou Mali Sugu. L'app vérifie s'il manque des opérations dans ton historique.
-        </div>
-        <div class="field">
-          <label>Nb transactions dans Max It / Sugu</label>
-          <input type="number" id="recon-nb" inputmode="numeric" placeholder="Ex: 24" oninput="reconcilier()">
-        </div>
-        <div class="field" style="margin-bottom:0">
-          <label>Total des montants envoyés (XOF)</label>
-          <input type="number" id="recon-total" inputmode="numeric" placeholder="Ex: 2500000" oninput="reconcilier()">
-        </div>
-        <div id="recon-result" style="margin-top:12px"></div>
-      </div>
-
-    </div>
+          </div>
 
     <!-- ══ ANALYSES ══ -->
     <div class="page" id="page-analyse">
@@ -776,7 +771,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
           <button class="filter-btn" id="rc-semaine" onclick="setReconPeriod('semaine',this)">Semaine</button>
           <button class="filter-btn" id="rc-libre" onclick="setReconPeriod('libre',this)">Plage libre</button>
         </div>
-        <div id="ragent-dates" style="display:none;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;min-width:0">
+        <div id="ragent-dates" style="display:none;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;margin-bottom:10px;min-width:0">
           <div>
             <div style="font-size:11px;color:var(--text3);margin-bottom:4px;letter-spacing:.4px">DU</div>
             <input type="date" id="ragent-debut" style="width:100%;padding:8px 6px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--rs);font-size:12px;color:var(--text);outline:none;font-family:'DM Mono',monospace;min-width:0" oninput="renderRecon()">
@@ -1063,7 +1058,7 @@ function awFetch(path,method,body){
   return fetch(AW_ENDPOINT+path,opts).then(r=>{
     if(!r.ok)return r.json().then(e=>{console.warn('Appwrite '+r.status+':',e.message);return null;});
     return r.json();
-  }).catch(e=>{console.warn('Appwrite:',e);return null;});
+  }).catch(e=>{if(e.message!=='Failed to fetch')console.warn('Appwrite:',e);return null;});
 }
 
 // Backup vers Appwrite
@@ -1663,7 +1658,7 @@ function sendWebhook(event,data){
   const txsMois=txs.filter(t=>t.type==='envoi'&&new Date(t.date).getMonth()===now.getMonth()&&new Date(t.date).getFullYear()===now.getFullYear());
   const payload={
     event,
-    data,
+    data:{...data,ref:data.ref||''},
     app:'SpeedCash',
     timestamp:now.toISOString(),
     agentTel:cfg.agentTel||'',
@@ -1781,8 +1776,9 @@ function filteredTxs(){
 let brouillonFilter='tous';
 function setBrouillonFilter(f,btn){
   brouillonFilter=f;
-  ['bf-tous','bf-ben','bf-arr','bf-mois','bf-semaine'].forEach(id=>{const el=S(id);if(el)el.classList.remove('on');});
+  ['bf-tous','bf-ben','bf-arr','bf-mois','bf-semaine','bf-libre'].forEach(id=>{const el=S(id);if(el)el.classList.remove('on');});
   btn.classList.add('on');
+  const dz=S('brouillon-dates');if(dz)dz.style.display=f==='libre'?'grid':'none';
   renderBrouillon();
 }
 
@@ -2297,7 +2293,7 @@ function showPage(p){
   if(p==='dash'){renderDash();renderObjectif();renderParamsActifs();renderCompteResultat();setTimeout(renderGraph,100);setTimeout(renderJours,50);}
   if(p==='treo'){loadSoldes();simulerLiquidation();renderAgent();renderMargeTaux();renderBrouillon();renderRecon();}
   if(p==='analyse'){renderRecon();renderMargeTaux();setTimeout(renderAnalyses,50);}
-  if(p==='settings')loadSettings();
+  if(p==='settings'){loadSettings();updateAccentPalettes();updateThemeButtons(localStorage.getItem('tp_theme')||'dark');}
 }
 
 // ── ANALYSES PRÉDICTIVES ──────────────────────────────────
@@ -2516,7 +2512,8 @@ function editSoldeInitial(){
         <button onclick="S('si-overlay').remove()" style="border:none;background:transparent;color:var(--text2);font-size:22px;cursor:pointer;padding:4px 8px">×</button>
       </div>
       <div style="font-size:12px;color:var(--text3);margin-bottom:12px;line-height:1.6">
-        Saisis ton solde de départ. L'app calculera automatiquement les mouvements depuis cette date.
+        Saisis le solde que tu avais à la date choisie. L'app ajoutera/retirera les transactions enregistrées après cette date.<br><br>
+        <b>Si tu commences aujourd'hui :</b> mets ton solde Orange Money actuel + tes MAD en poche. L'app calculera à partir de maintenant.
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
         <div class="field" style="margin:0">
@@ -2563,15 +2560,24 @@ function calculerSoldes(){
   let cfa=si.cfa, mad=si.mad;
 
   // Parcourir les transactions (les plus anciennes d'abord)
+  let madChezAgent=0; // MAD pas encore récupérés
   const txsSorted=[...txs].reverse();
   txsSorted.forEach(t=>{
     if(new Date(t.date)<dateDebut)return;
     if(t.type==='envoi'){
       cfa-=(t.montantXof||0); // CFA envoyés
-      mad+=(t.montantMAD||0); // MAD récupérés
+      if(t.gereParAgent){
+        madChezAgent+=(t.montantMAD||0); // Chez l'agent, pas encore dans ta poche
+      } else {
+        mad+=(t.montantMAD||0); // Récupéré directement
+      }
     } else if(t.type==='recep'){
       cfa+=(t.montantXof||0); // CFA reçus
-      mad-=(t.montantMAD||0); // MAD donnés
+      if(t.gereParAgent){
+        madChezAgent-=(t.montantMAD||0); // Agent doit remettre
+      } else {
+        mad-=(t.montantMAD||0); // Tu donnes directement
+      }
     }
   });
 
@@ -2583,7 +2589,7 @@ function calculerSoldes(){
     });
   }
 
-  return {cfa:Math.round(cfa),mad:Math.round(mad*100)/100};
+  return {cfa:Math.round(cfa),mad:Math.round(mad*100)/100,madChezAgent:Math.round(madChezAgent*100)/100};
 }
 
 function loadSoldes(){
@@ -2598,7 +2604,11 @@ function loadSoldes(){
   const deltaCFA=calc.cfa-si.cfa;
   const deltaMAD=calc.mad-si.mad;
   if(S('solde-cfa-delta'))S('solde-cfa-delta').textContent=(deltaCFA>=0?'+':'')+fmt(deltaCFA)+' F depuis le début';
-  if(S('solde-mad-delta'))S('solde-mad-delta').textContent=(deltaMAD>=0?'+':'')+fmt(deltaMAD,2)+' MAD depuis le début';
+  if(S('solde-mad-delta')){
+    let txt=(deltaMAD>=0?'+':'')+fmt(deltaMAD,2)+' MAD depuis le début';
+    if(calc.madChezAgent>0) txt+=' · '+fmt(calc.madChezAgent,2)+' MAD chez l\'agent';
+    S('solde-mad-delta').textContent=txt;
+  }
   
   // Hidden inputs pour les autres fonctions
   S('solde-cfa').value=calc.cfa;
@@ -3352,6 +3362,11 @@ function renderBrouillon(){
   let txsFilt=txs.filter(t=>t.type==='envoi');
   if(brouillonFilter==='mois') txsFilt=txsFilt.filter(t=>{const d=new Date(t.date);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
   else if(brouillonFilter==='semaine'){const lim=new Date(now-7*86400000);txsFilt=txsFilt.filter(t=>new Date(t.date)>=lim);}
+  else if(brouillonFilter==='libre'){
+    const d=S('brouillon-debut')?.value,f=S('brouillon-fin')?.value;
+    if(d&&f)txsFilt=txsFilt.filter(t=>{const x=new Date(t.date);return x>=new Date(d)&&x<=new Date(f+'T23:59:59');});
+    else txsFilt=[];
+  }
 
   let bFilt=[...b];
   if(brouillonFilter==='ben') bFilt=bFilt.filter(x=>x.source!=='arrondi');
@@ -3382,6 +3397,12 @@ function renderBrouillon(){
   // Bénéfice réceptions (CFA, injecté dans la poche CFA)
   let recepFilt=txs.filter(t=>t.type==='recep');
   if(brouillonFilter==='mois') recepFilt=recepFilt.filter(t=>{const d=new Date(t.date);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
+  else if(brouillonFilter==='semaine'){const lim2=new Date(now-7*86400000);recepFilt=recepFilt.filter(t=>new Date(t.date)>=lim2);}
+  else if(brouillonFilter==='libre'){
+    const d2=S('brouillon-debut')?.value,f2=S('brouillon-fin')?.value;
+    if(d2&&f2)recepFilt=recepFilt.filter(t=>{const x=new Date(t.date);return x>=new Date(d2)&&x<=new Date(f2+'T23:59:59');});
+    else recepFilt=[];
+  }
   else if(brouillonFilter==='semaine'){const lim=new Date(now-7*86400000);recepFilt=recepFilt.filter(t=>new Date(t.date)>=lim);}
   const benRecepXof=recepFilt.reduce((s,t)=>s+(t.benefice||0),0);
   const benRecepMAD=benRecepXof/TAUX;
@@ -3440,51 +3461,6 @@ function suppBrouillon(id){
 }
 
 // ── RÉCONCILIATION ────────────────────────────────────────
-function reconcilier(){
-  const nbExt=parseInt(S('recon-nb').value)||0;
-  const totalExt=parseFloat(S('recon-total').value)||0;
-  const el=S('recon-result');
-  if(!nbExt&&!totalExt){el.innerHTML='';return;}
-
-  const txs=getTxs();
-  const nbApp=txs.length;
-  const totalApp=txs.reduce((s,t)=>s+(t.montantXof||0),0);
-
-  const diffNb=nbExt-nbApp;
-  const diffTotal=totalExt-totalApp;
-  const ok=diffNb===0&&Math.abs(diffTotal)<1000;
-
-  el.innerHTML=`
-    <div style="background:${ok?'rgba(46,204,138,0.07)':'rgba(255,79,106,0.07)'};border:0.5px solid ${ok?'rgba(46,204,138,0.25)':'rgba(255,79,106,0.25)'};border-radius:var(--rs);padding:12px">
-      <div style="font-size:13px;font-weight:600;color:${ok?'var(--green)':'var(--red)'};margin-bottom:10px">
-        ${ok?'✓ Tout correspond !':'⚠️ Écart détecté'}
-      </div>
-      <div class="br">
-        <span class="bl">Transactions Max It/Sugu</span>
-        <span style="font-size:13px;font-family:'DM Mono',monospace;color:var(--text)">${nbExt}</span>
-      </div>
-      <div class="br">
-        <span class="bl">Transactions dans l'app</span>
-        <span style="font-size:13px;font-family:'DM Mono',monospace;color:var(--text)">${nbApp}</span>
-      </div>
-      ${diffNb!==0?`<div class="br">
-        <span class="bl" style="color:var(--red)">Transactions manquantes</span>
-        <span style="font-size:13px;font-family:'DM Mono',monospace;color:var(--red)">${diffNb > 0 ? '+ '+diffNb+' à ajouter' : diffNb+' en trop'}</span>
-      </div>`:''}
-      <div class="br">
-        <span class="bl">Total Max It/Sugu</span>
-        <span style="font-size:13px;font-family:'DM Mono',monospace;color:var(--text)">${fmt(totalExt)} F</span>
-      </div>
-      <div class="br">
-        <span class="bl">Total dans l'app</span>
-        <span style="font-size:13px;font-family:'DM Mono',monospace;color:var(--text)">${fmt(totalApp)} F</span>
-      </div>
-      ${Math.abs(diffTotal)>=1000?`<div class="br tot">
-        <span class="bl" style="color:var(--red)">Écart montants</span>
-        <span style="font-size:14px;font-family:'DM Mono',monospace;color:var(--red)">${diffTotal>0?'+':''}${fmt(diffTotal)} F</span>
-      </div>`:''}
-    </div>`;
-}
 function getDépenses(){try{return JSON.parse(localStorage.getItem('tp_agent'))||[];}catch{return[];}}
 // ── RÉCONCILIATION AGENT ──────────────────────────────────
 let reconPeriod='jour';
